@@ -64,6 +64,10 @@ api.place([
 
 200 ではなく 201。`200 or 201` 両方を成功扱いに。`400` は「既にfilled/cancelled/expired」なので無視してOK。
 
+### 8. ページネーション `limit` の上限は 100
+
+`/orders`, `/trades` 等で `limit=200` を渡すと `400 {"message":"Bad Request Exception"}`。サーバ側のhard cap は 100。それ以上欲しい場合は `offset` でページング。
+
 ---
 
 ## レバレッジ上限 (`GET /leverage-limits/effective`)
