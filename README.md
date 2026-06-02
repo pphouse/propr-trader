@@ -17,7 +17,12 @@
 ├── KNOWLEDGE.md             # API の罠、Hyperliquid連携メモ、市況観察
 ├── STRATEGY.md              # 現在運用中の戦略と根拠
 ├── STRATEGY_SMART_MONEY.md  # 別枠: スマートマネー追従シグナル(設計フェーズ)
-└── TRADE_LOG.md             # 主要トレードの記録(概要)
+├── TRADE_LOG.md             # 主要トレードの記録(概要)
+└── autopilot/               # cron + claude -p で20分定期判断
+    ├── prompt.md            # claude -p に渡す指示書
+    ├── run.sh               # cron wrapper
+    ├── CRONJOB.md           # セットアップ手順
+    └── logs/                # 日別実行ログ・コスト追跡
 ```
 
 ## 運用パターン: 知見の二重保存
