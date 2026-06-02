@@ -24,9 +24,12 @@ ERR="$LOG_DIR/$TODAY.err"
   echo "============================================================"
 } >> "$LOG"
 
-# OAuth token 推奨 (cron環境ではkeychainアクセス不可)
-if [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
-  echo "[warn] CLAUDE_CODE_OAUTH_TOKEN env var not set. May fail auth from cron." >> "$LOG"
+# cron環境ではkeychainアクセス不可。下記2つのいずれか必須:
+#   - ANTHROPIC_API_KEY (API直課金、推奨)
+#   - CLAUDE_CODE_OAUTH_TOKEN (Pro/Max plan枠使用、`claude setup-token` で生成)
+if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -z "${CLAUDE_CODE_OAUTH_TOKEN:-}" ]; then
+  echo "[warn] Neither ANTHROPIC_API_KEY nor CLAUDE_CODE_OAUTH_TOKEN is set." >> "$LOG"
+  echo "[warn] cron auth will fail (keychain not accessible from cron)." >> "$LOG"
 fi
 
 # claudeフルパスはセットアップ環境で確認 (which claude)
@@ -41,6 +44,8 @@ PROMPT=$(cat "$REPO/autopilot/prompt.md")
   --model claude-sonnet-4-6 \
   --dangerously-skip-permissions \
   --output-format json \
+  --max-budget-usd 0.30 \
+  --fallback-model claude-haiku-4-5 \
   2>>"$ERR" \
   | tee -a "$JSONL" \
   | jq -r '

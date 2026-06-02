@@ -15,21 +15,35 @@ autopilot/
 └── CRONJOB.md        # このファイル
 ```
 
-## 事前準備
+## 認証方式の選択 (重要)
 
-### 1. claude CLI の OAuth トークン生成 (cron用、keychain回避)
+cron から Claude Code を起動するには、keychain を介さない認証が必要。2択:
+
+### 方式A: Anthropic API Key (推奨、コスト透明)
+
+```bash
+# 1. https://console.anthropic.com/settings/keys で API key 発行
+# 2. ~/.zshrc に追加 (claude本体起動時の干渉を避けるため、cron専用のenv分離も検討)
+echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.zshrc
+source ~/.zshrc
+```
+
+メリット: 課金が透明($97/月想定、`--max-budget-usd 0.30` で1回上限制限)。Pro/Maxプランの月次制限に影響しない。
+デメリット: API課金が別途発生。
+
+### 方式B: Claude Code OAuth トークン (Pro/Max plan使う)
 
 ```bash
 claude setup-token
-# 1年有効のtokenが出力される。コピーして次の手順で使う
-```
-
-### 2. ~/.zshrc に環境変数を追加
-
-```bash
-echo 'export CLAUDE_CODE_OAUTH_TOKEN="<コピーしたtoken>"' >> ~/.zshrc
+# 1年有効のtokenが出力される
+echo 'export CLAUDE_CODE_OAUTH_TOKEN="<token>"' >> ~/.zshrc
 source ~/.zshrc
 ```
+
+メリット: 既存のClaude Codeプラン枠を使える(追加課金なし、ただし枠内)。
+デメリット: Pro/Maxプランの月次セッション枠を消費(20分×72回/日×30日=2,160回/月。**Maxプランでも超過リスク**)。枠超過時の挙動は要確認。
+
+**判断目安**: 安定運用なら方式A、まず試したいだけなら方式Bで小頻度(1時間ごと)から。
 
 ### 3. claude のパス確認
 
@@ -43,7 +57,11 @@ which claude
 
 ```bash
 cd /Users/naoto/propr
+# 方式Aの場合:
+ANTHROPIC_API_KEY="sk-ant-..." bash autopilot/run.sh
+# 方式Bの場合:
 CLAUDE_CODE_OAUTH_TOKEN="<token>" bash autopilot/run.sh
+
 cat autopilot/logs/$(date +%Y-%m-%d).log
 ```
 
@@ -62,7 +80,10 @@ crontab -e
 ```cron
 # 環境変数 (cronはshell rc読まないため明示)
 PATH=/usr/local/bin:/usr/bin:/bin:/Users/naoto/.npm-global/bin
-CLAUDE_CODE_OAUTH_TOKEN=<your-token-here>
+
+# 認証 (方式A or B どちらか)
+ANTHROPIC_API_KEY=sk-ant-...
+# または: CLAUDE_CODE_OAUTH_TOKEN=<your-token-here>
 
 # 20分ごとにpropr.xyz投資判断
 */20 * * * * /Users/naoto/propr/autopilot/run.sh
