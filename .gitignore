@@ -5,3 +5,7 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+autopilot/logs/*.log
+autopilot/logs/*.err
+autopilot/logs/*.runs.jsonl
+autopilot/logs/state.json

@@ -24,6 +24,95 @@ ERR="$LOG_DIR/$TODAY.err"
   echo "============================================================"
 } >> "$LOG"
 
+# 1) Snapshot を必ず撮る (Claudeまかせにしない、また /tmp/propr_current.json にコンパクト版を出力)
+cd "$REPO/free"
+python3 -c "
+import sys, json
+sys.path.insert(0, '.')
+import api
+
+acc = api.account()
+pos_open = api.positions(status='open')['data']
+pos_closed = api.positions(status='closed')['data']
+orders = api.get('/accounts/' + api.ACCOUNT_ID + '/orders', limit=30)['data']
+trades = api.get('/accounts/' + api.ACCOUNT_ID + '/trades', limit=20)['data']
+
+# Hyperliquid市況
+import urllib.request
+req = urllib.request.Request('https://api.hyperliquid.xyz/info',
+    data=json.dumps({'type':'metaAndAssetCtxs'}).encode(),
+    headers={'Content-Type':'application/json'})
+hl = json.loads(urllib.request.urlopen(req).read())
+universe, ctxs = hl[0]['universe'], hl[1]
+focus_assets = {'BTC','ETH','SOL','HYPE','DOGE','XRP','AVAX','LINK','SUI'}
+focus_assets.update(p['asset'] for p in pos_open if float(p['quantity']) != 0)
+mkt = {}
+for u, c in zip(universe, ctxs):
+    if u['name'] not in focus_assets: continue
+    mid = float(c.get('markPx',0)); prev = float(c.get('prevDayPx',0))
+    chg = (mid/prev - 1)*100 if prev else 0
+    mkt[u['name']] = {'mid':mid, 'chg24h_pct':round(chg,2), 'funding':float(c.get('funding',0))}
+
+compact = {
+  'now_utc': __import__('datetime').datetime.utcnow().isoformat()+'Z',
+  'account': {
+    'marginBalance': acc['marginBalance'],
+    'balance': acc['balance'],
+    'totalUnrealizedPnl': acc['totalUnrealizedPnl'],
+    'totalInitialMargin': acc['totalInitialMargin'],
+    'availableBalance': acc['availableBalance'],
+    'highWaterMark': acc['highWaterMark'],
+  },
+  'positions_open': [
+    {'asset':p['asset'],'side':p['positionSide'],'qty':p['quantity'],
+     'entry':p['entryPrice'],'mark':p['markPrice'],
+     'uPnL':p['unrealizedPnl'],'lev':p['leverage'],
+     'margin':p['marginUsed'],'breakEven':p['breakEvenPrice'],
+     'positionId':p['positionId']}
+    for p in pos_open if float(p['quantity']) != 0
+  ],
+  'positions_closed_today': [
+    {'asset':p['asset'],'side':p['positionSide'],'entry':p['entryPrice'],
+     'realizedPnl':p['realizedPnl'],'closedAt':p['closedAt']}
+    for p in pos_closed
+    if p.get('closedAt','') >= __import__('datetime').date.today().isoformat()
+  ],
+  'pending_protective_orders': [
+    {'asset':o['asset'],'type':o['type'],'trigger':o['triggerPrice'],
+     'qty':o['quantity'],'positionId':o['positionId']}
+    for o in orders if o['status']=='pending'
+  ],
+  'recent_trades_5': [
+    {'asset':t['asset'],'type':t['type'],'side':t['side'],
+     'price':t['price'],'qty':t['quantity'],'pnl':t['realizedPnl'],'at':t['executedAt']}
+    for t in trades[:5]
+  ],
+  'market_24h': mkt,
+}
+
+# 日次realized集計
+today = __import__('datetime').date.today().isoformat()
+realized_today = sum(float(t['realizedPnl']) for t in trades if t.get('executedAt','')[:10] == today)
+compact['account']['realized_today'] = round(realized_today, 4)
+
+with open('/tmp/propr_current.json','w') as f:
+    json.dump(compact, f, indent=2, default=str)
+
+# 時系列snapshotsにも保存
+from pathlib import Path
+import datetime
+now = datetime.datetime.utcnow()
+out_dir = Path('$REPO/snapshots') / now.strftime('%Y-%m-%d')
+out_dir.mkdir(parents=True, exist_ok=True)
+out = out_dir / (now.strftime('%H-%M') + '-utc-auto.json')
+out.write_text(json.dumps(compact, indent=2, default=str))
+print(f'snapshot ok: {out}')
+" >> "$LOG" 2>>"$ERR" || {
+  echo "[error] snapshot failed, abort" >> "$LOG"
+  exit 1
+}
+cd "$REPO"
+
 # cron環境ではkeychainアクセス不可。下記2つのいずれか必須:
 #   - ANTHROPIC_API_KEY (API直課金、推奨)
 #   - CLAUDE_CODE_OAUTH_TOKEN (Pro/Max plan枠使用、`claude setup-token` で生成)
