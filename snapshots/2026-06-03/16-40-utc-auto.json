@@ -1,0 +1,137 @@
+{
+  "now_utc": "2026-06-03T16:40:07.974240Z",
+  "account": {
+    "marginBalance": "5099.249883",
+    "balance": "5052.734883",
+    "totalUnrealizedPnl": "46.515",
+    "totalInitialMargin": "404.64",
+    "availableBalance": "4694.609883",
+    "highWaterMark": "5000",
+    "realized_today": 0
+  },
+  "positions_open": [
+    {
+      "asset": "BTC",
+      "side": "short",
+      "qty": "0.03",
+      "entry": "67440",
+      "mark": "65889.5",
+      "uPnL": "46.515",
+      "lev": "5",
+      "margin": "404.64",
+      "breakEven": "67409.652",
+      "positionId": "urn:prp-position:f3DyqJ6tm3vX"
+    }
+  ],
+  "positions_closed_today": [],
+  "pending_protective_orders": [
+    {
+      "asset": "BTC",
+      "type": "stop_market",
+      "trigger": "67410",
+      "qty": "0.03",
+      "positionId": "urn:prp-position:f3DyqJ6tm3vX"
+    },
+    {
+      "asset": "BTC",
+      "type": "take_profit_market",
+      "trigger": "64540.6",
+      "qty": "0.03",
+      "positionId": "urn:prp-position:f3DyqJ6tm3vX"
+    }
+  ],
+  "recent_trades_5": [
+    {
+      "asset": "ETH",
+      "type": "close",
+      "side": "buy",
+      "price": "1832.5",
+      "qty": "0.78",
+      "pnl": "72.15",
+      "at": "2026-06-03T03:36:51.448Z"
+    },
+    {
+      "asset": "HYPE",
+      "type": "close",
+      "side": "sell",
+      "price": "70.5",
+      "qty": "13.877324451845684152",
+      "pnl": "-17.519761",
+      "at": "2026-06-02T19:17:19.453Z"
+    },
+    {
+      "asset": "ETH",
+      "type": "open",
+      "side": "sell",
+      "price": "1925",
+      "qty": "0.78",
+      "pnl": "0",
+      "at": "2026-06-02T18:03:52.628Z"
+    },
+    {
+      "asset": "BTC",
+      "type": "open",
+      "side": "sell",
+      "price": "67440",
+      "qty": "0.03",
+      "pnl": "0",
+      "at": "2026-06-02T17:53:46.739Z"
+    },
+    {
+      "asset": "HYPE",
+      "type": "open",
+      "side": "buy",
+      "price": "71.762",
+      "qty": "10.59",
+      "pnl": "0",
+      "at": "2026-06-02T17:15:07.102Z"
+    }
+  ],
+  "market_24h": {
+    "BTC": {
+      "mid": 65863.0,
+      "chg24h_pct": -2.58,
+      "funding": 1.25e-05
+    },
+    "ETH": {
+      "mid": 1825.5,
+      "chg24h_pct": -5.13,
+      "funding": -6.6163e-06
+    },
+    "SOL": {
+      "mid": 72.679,
+      "chg24h_pct": -5.58,
+      "funding": -3.38764e-05
+    },
+    "AVAX": {
+      "mid": 8.0968,
+      "chg24h_pct": -4.22,
+      "funding": 1.25e-05
+    },
+    "DOGE": {
+      "mid": 0.092173,
+      "chg24h_pct": -3.73,
+      "funding": 5.9458e-06
+    },
+    "SUI": {
+      "mid": 0.81562,
+      "chg24h_pct": -2.15,
+      "funding": 1.25e-05
+    },
+    "LINK": {
+      "mid": 8.2936,
+      "chg24h_pct": -4.14,
+      "funding": 1.25e-05
+    },
+    "XRP": {
+      "mid": 1.2169,
+      "chg24h_pct": -1.63,
+      "funding": -2.0967e-06
+    },
+    "HYPE": {
+      "mid": 72.121,
+      "chg24h_pct": -0.13,
+      "funding": 1.25e-05
+    }
+  }
+}

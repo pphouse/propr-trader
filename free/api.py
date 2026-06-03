@@ -1,12 +1,35 @@
 """propr API共通ライブラリ。"""
 import json
+import os
 import urllib.request, urllib.error
 from decimal import Decimal
+from pathlib import Path
 from ulid import ULID
 
-API_KEY = open("/Users/naoto/propr/free/.env").read().strip().split("=", 1)[1]
+
+def _load_api_key():
+    # 1) 環境変数優先 (routine cloud / cron systemd 等)
+    key = os.environ.get("PROPR_API_KEY") or os.environ.get("PERPR_API_KEY")
+    if key:
+        return key.strip()
+    # 2) フォールバック: ローカル .env ファイル (repo root or free/ 配下を探す)
+    for candidate in [
+        Path(__file__).parent / ".env",
+        Path(__file__).parent.parent / ".env",
+        Path("/Users/naoto/propr/free/.env"),
+    ]:
+        if candidate.exists():
+            line = candidate.read_text().strip().split("\n")[0]
+            return line.split("=", 1)[1].strip()
+    raise RuntimeError(
+        "PROPR_API_KEY not found. Set env var PROPR_API_KEY=pk_live_..."
+        " or place .env file with PROPR_API_KEY=... near api.py"
+    )
+
+
+API_KEY = _load_api_key()
 BASE = "https://api.propr.xyz/v1"
-ACCOUNT_ID = "urn:prp-account:xREXiJC2b4He"
+ACCOUNT_ID = os.environ.get("PROPR_ACCOUNT_ID", "urn:prp-account:xREXiJC2b4He")
 HEADERS = {
     "X-API-Key": API_KEY,
     "Content-Type": "application/json",
