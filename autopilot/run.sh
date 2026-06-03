@@ -9,6 +9,11 @@ set -euo pipefail
 REPO="/Users/naoto/propr"
 cd "$REPO"
 
+# cron環境では PATH が貧弱で python3 resolution が miniforge3 を拾い、
+# python-ulid が無いため snapshot.py が import fail する。
+# pyenv shims を先頭に置いて、shellと同じpython3 (3.9 + ulid) を使う。
+export PATH="/Users/naoto/.pyenv/shims:$PATH"
+
 LOG_DIR="$REPO/autopilot/logs"
 mkdir -p "$LOG_DIR"
 TODAY=$(date +%Y-%m-%d)
