@@ -1,0 +1,50 @@
+{
+  "wallet": "0x31ca8395cf837de08b24da3f660e77761dfb974b",
+  "account_value_now": 2978596.939314,
+  "portfolio_days": 64,
+  "initial_av": 182518494.91,
+  "final_pnl": 37580432.48,
+  "peak_pnl": 44659973.56,
+  "trade_count": 2000,
+  "span_days": 0.0,
+  "first_fill_utc": "2026-06-03T03:37:52.535000+00:00",
+  "last_fill_utc": "2026-06-03T03:45:32.125000+00:00",
+  "wins": 628,
+  "losses": 315,
+  "win_rate": 0.666,
+  "profit_factor": 4.76,
+  "top3_pnl_share": 0.036,
+  "maker_ratio": 0.782,
+  "total_fees": 0.0,
+  "gross_realized_pnl": 2291.96,
+  "top_assets": [
+    [
+      "ZEC",
+      219
+    ],
+    [
+      "LIT",
+      147
+    ],
+    [
+      "NEAR",
+      109
+    ],
+    [
+      "ENA",
+      60
+    ],
+    [
+      "TON",
+      51
+    ]
+  ],
+  "sharpe_annual": 2.25,
+  "max_drawdown_pct": 4.2,
+  "alpha_source": "market_making",
+  "qualified": false,
+  "reject_reasons": [
+    "portfolio<90d",
+    "alpha=market_making"
+  ]
+}

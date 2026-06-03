@@ -1,0 +1,48 @@
+{
+  "wallet": "0xa445a0a15b1d50fa0c4bfe6796d9447e0da5329d",
+  "account_value_now": 1993506.983044,
+  "portfolio_days": 43,
+  "initial_av": 4957402.08,
+  "final_pnl": -359544.38,
+  "peak_pnl": 1277377.58,
+  "trade_count": 2000,
+  "span_days": 1.5,
+  "first_fill_utc": "2026-05-04T04:53:20.768000+00:00",
+  "last_fill_utc": "2026-05-05T17:31:44.918000+00:00",
+  "wins": 1999,
+  "losses": 1,
+  "win_rate": 1.0,
+  "profit_factor": 21060520482.63,
+  "top3_pnl_share": 0.058,
+  "maker_ratio": 1.0,
+  "total_fees": 1659.61,
+  "gross_realized_pnl": 400149.89,
+  "top_assets": [
+    [
+      "BTC",
+      939
+    ],
+    [
+      "ETH",
+      757
+    ],
+    [
+      "PENGU",
+      278
+    ],
+    [
+      "AAVE",
+      26
+    ]
+  ],
+  "sharpe_annual": -0.59,
+  "max_drawdown_pct": 37.3,
+  "alpha_source": "market_making",
+  "qualified": false,
+  "reject_reasons": [
+    "portfolio<90d",
+    "sharpe<1.0",
+    "dd>30%",
+    "alpha=market_making"
+  ]
+}

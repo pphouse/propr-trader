@@ -1,0 +1,50 @@
+{
+  "wallet": "0x7fdafde5cfb5465924316eced2d3715494c517d1",
+  "account_value_now": 28284154.252857,
+  "portfolio_days": 98,
+  "initial_av": 58247298.45,
+  "final_pnl": 161823300.17,
+  "peak_pnl": 164152471.01,
+  "trade_count": 2000,
+  "span_days": 0.0,
+  "first_fill_utc": "2026-06-02T20:41:08.001000+00:00",
+  "last_fill_utc": "2026-06-02T21:46:32.777000+00:00",
+  "wins": 282,
+  "losses": 46,
+  "win_rate": 0.86,
+  "profit_factor": 86.9,
+  "top3_pnl_share": 0.136,
+  "maker_ratio": 1.0,
+  "total_fees": -24.61,
+  "gross_realized_pnl": 51257.87,
+  "top_assets": [
+    [
+      "LIT",
+      745
+    ],
+    [
+      "ZEC",
+      557
+    ],
+    [
+      "ASTER",
+      232
+    ],
+    [
+      "HYPE",
+      223
+    ],
+    [
+      "XMR",
+      74
+    ]
+  ],
+  "sharpe_annual": 3.24,
+  "max_drawdown_pct": 77.1,
+  "alpha_source": "market_making",
+  "qualified": false,
+  "reject_reasons": [
+    "dd>30%",
+    "alpha=market_making"
+  ]
+}

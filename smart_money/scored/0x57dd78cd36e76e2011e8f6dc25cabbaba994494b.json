@@ -1,0 +1,53 @@
+{
+  "wallet": "0x57dd78cd36e76e2011e8f6dc25cabbaba994494b",
+  "account_value_now": 9418780.782009,
+  "portfolio_days": 58,
+  "initial_av": 16732514.91,
+  "final_pnl": -10115674.73,
+  "peak_pnl": 494065.04,
+  "trade_count": 2000,
+  "span_days": 0.0,
+  "first_fill_utc": "2026-06-03T03:09:52.196000+00:00",
+  "last_fill_utc": "2026-06-03T03:26:43.194000+00:00",
+  "wins": 473,
+  "losses": 594,
+  "win_rate": 0.443,
+  "profit_factor": 0.4,
+  "top3_pnl_share": 0.152,
+  "maker_ratio": 0.872,
+  "total_fees": -174.86,
+  "gross_realized_pnl": -14751.57,
+  "top_assets": [
+    [
+      "BTC",
+      216
+    ],
+    [
+      "ZEC",
+      138
+    ],
+    [
+      "NEAR",
+      132
+    ],
+    [
+      "LIT",
+      103
+    ],
+    [
+      "xyz:PURRDAT",
+      97
+    ]
+  ],
+  "sharpe_annual": -1.77,
+  "max_drawdown_pct": 98.2,
+  "alpha_source": "market_making",
+  "qualified": false,
+  "reject_reasons": [
+    "portfolio<90d",
+    "sharpe<1.0",
+    "dd>30%",
+    "pf<1.3",
+    "alpha=market_making"
+  ]
+}

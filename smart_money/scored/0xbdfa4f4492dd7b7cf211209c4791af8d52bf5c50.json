@@ -1,0 +1,53 @@
+{
+  "wallet": "0xbdfa4f4492dd7b7cf211209c4791af8d52bf5c50",
+  "account_value_now": 10990.43852,
+  "portfolio_days": 79,
+  "initial_av": 1470757.23,
+  "final_pnl": -785721.82,
+  "peak_pnl": 162675.69,
+  "trade_count": 989,
+  "span_days": 86.9,
+  "first_fill_utc": "2026-03-05T05:00:38.839000+00:00",
+  "last_fill_utc": "2026-05-31T02:35:05.762000+00:00",
+  "wins": 52,
+  "losses": 269,
+  "win_rate": 0.162,
+  "profit_factor": 0.44,
+  "top3_pnl_share": 0.421,
+  "maker_ratio": 0.769,
+  "total_fees": 157.87,
+  "gross_realized_pnl": -79675.93,
+  "top_assets": [
+    [
+      "MEGA",
+      334
+    ],
+    [
+      "#400",
+      133
+    ],
+    [
+      "#651",
+      103
+    ],
+    [
+      "xyz:CL",
+      77
+    ],
+    [
+      "km:SMALL2000",
+      57
+    ]
+  ],
+  "sharpe_annual": -4.13,
+  "max_drawdown_pct": 64.5,
+  "alpha_source": "market_making",
+  "qualified": false,
+  "reject_reasons": [
+    "portfolio<90d",
+    "sharpe<1.0",
+    "dd>30%",
+    "pf<1.3",
+    "alpha=market_making"
+  ]
+}

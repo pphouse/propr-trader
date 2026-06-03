@@ -1,0 +1,39 @@
+{
+  "wallet": "0x049bdc370620beab340b01072fa580fd57745e7d",
+  "account_value_now": 1354763.17485,
+  "portfolio_days": 35,
+  "initial_av": 6605908.47,
+  "final_pnl": 4428690.9,
+  "peak_pnl": 7728083.0,
+  "trade_count": 2000,
+  "span_days": 1.3,
+  "first_fill_utc": "2026-05-01T14:10:39.622000+00:00",
+  "last_fill_utc": "2026-05-02T21:49:34.610000+00:00",
+  "wins": 645,
+  "losses": 248,
+  "win_rate": 0.722,
+  "profit_factor": 37.67,
+  "top3_pnl_share": 0.16,
+  "maker_ratio": 0.224,
+  "total_fees": 9266.65,
+  "gross_realized_pnl": 80930.36,
+  "top_assets": [
+    [
+      "BTC",
+      1144
+    ],
+    [
+      "ETH",
+      856
+    ]
+  ],
+  "sharpe_annual": 3.04,
+  "max_drawdown_pct": 49.9,
+  "alpha_source": "likely_funding_farming",
+  "qualified": false,
+  "reject_reasons": [
+    "portfolio<90d",
+    "dd>30%",
+    "alpha=likely_funding_farming"
+  ]
+}

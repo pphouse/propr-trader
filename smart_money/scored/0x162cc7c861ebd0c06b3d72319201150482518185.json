@@ -1,0 +1,49 @@
+{
+  "wallet": "0x162cc7c861ebd0c06b3d72319201150482518185",
+  "account_value_now": 216100.0,
+  "portfolio_days": 93,
+  "initial_av": 9586419.27,
+  "final_pnl": 19523418.73,
+  "peak_pnl": 19689738.2,
+  "trade_count": 2000,
+  "span_days": 0.0,
+  "first_fill_utc": "2026-06-02T21:38:59.823000+00:00",
+  "last_fill_utc": "2026-06-02T22:28:49.808000+00:00",
+  "wins": 42,
+  "losses": 1440,
+  "win_rate": 0.028,
+  "profit_factor": 0.01,
+  "top3_pnl_share": 0.063,
+  "maker_ratio": 0.232,
+  "total_fees": 512.66,
+  "gross_realized_pnl": -17669.93,
+  "top_assets": [
+    [
+      "@107",
+      1506
+    ],
+    [
+      "PURR/USDC",
+      245
+    ],
+    [
+      "@142",
+      81
+    ],
+    [
+      "@151",
+      72
+    ],
+    [
+      "@188",
+      58
+    ]
+  ],
+  "sharpe_annual": 8.24,
+  "max_drawdown_pct": 16.0,
+  "alpha_source": "directional",
+  "qualified": false,
+  "reject_reasons": [
+    "pf<1.3"
+  ]
+}

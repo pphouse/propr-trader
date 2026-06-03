@@ -1,0 +1,52 @@
+{
+  "wallet": "0xecb63caa47c7c4e77f60f1ce858cf28dc2b82b00",
+  "account_value_now": 29117773.050921,
+  "portfolio_days": 77,
+  "initial_av": 101566523.64,
+  "final_pnl": 190698147.91,
+  "peak_pnl": 190698147.91,
+  "trade_count": 2000,
+  "span_days": 0.0,
+  "first_fill_utc": "2026-06-03T02:50:58.681000+00:00",
+  "last_fill_utc": "2026-06-03T03:07:52.036000+00:00",
+  "wins": 670,
+  "losses": 253,
+  "win_rate": 0.726,
+  "profit_factor": 0.74,
+  "top3_pnl_share": 0.151,
+  "maker_ratio": 0.824,
+  "total_fees": -26.57,
+  "gross_realized_pnl": -1021.71,
+  "top_assets": [
+    [
+      "@107",
+      378
+    ],
+    [
+      "HYPE",
+      282
+    ],
+    [
+      "xyz:CL",
+      147
+    ],
+    [
+      "NEAR",
+      142
+    ],
+    [
+      "cash:WTI",
+      114
+    ]
+  ],
+  "sharpe_annual": 4.2,
+  "max_drawdown_pct": 46.6,
+  "alpha_source": "market_making",
+  "qualified": false,
+  "reject_reasons": [
+    "portfolio<90d",
+    "dd>30%",
+    "pf<1.3",
+    "alpha=market_making"
+  ]
+}

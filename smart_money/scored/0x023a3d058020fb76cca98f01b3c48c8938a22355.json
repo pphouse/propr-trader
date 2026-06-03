@@ -1,0 +1,50 @@
+{
+  "wallet": "0x023a3d058020fb76cca98f01b3c48c8938a22355",
+  "account_value_now": 11445825.852981,
+  "portfolio_days": 76,
+  "initial_av": 32216755.2,
+  "final_pnl": 67512758.65,
+  "peak_pnl": 67663413.91,
+  "trade_count": 2000,
+  "span_days": 0.0,
+  "first_fill_utc": "2026-06-02T19:35:26.563000+00:00",
+  "last_fill_utc": "2026-06-02T20:20:08.792000+00:00",
+  "wins": 442,
+  "losses": 895,
+  "win_rate": 0.331,
+  "profit_factor": 0.38,
+  "top3_pnl_share": 0.061,
+  "maker_ratio": 0.652,
+  "total_fees": 34.67,
+  "gross_realized_pnl": -52066.64,
+  "top_assets": [
+    [
+      "HYPE",
+      589
+    ],
+    [
+      "BTC",
+      310
+    ],
+    [
+      "NEAR",
+      192
+    ],
+    [
+      "ZEC",
+      147
+    ],
+    [
+      "SOL",
+      113
+    ]
+  ],
+  "sharpe_annual": 5.12,
+  "max_drawdown_pct": 26.3,
+  "alpha_source": "directional",
+  "qualified": false,
+  "reject_reasons": [
+    "portfolio<90d",
+    "pf<1.3"
+  ]
+}
