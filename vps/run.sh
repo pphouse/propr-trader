@@ -29,7 +29,7 @@ echo "============================================================"
 
 # 6. Run claude headless. Prompt goes via stdin so --allowed-tools
 #    (variadic) doesn't swallow the prompt as one of its values.
-cat <<'PROMPT' | claude --print --allowed-tools "Bash Read Write Edit WebSearch WebFetch Glob Grep"
+cat <<'PROMPT' | claude --print --dangerously-skip-permissions --allowed-tools "Bash Read Write Edit WebSearch WebFetch Glob Grep"
 Read `autopilot/prompt.md` from this repo and execute the instructions exactly. This is the propr.xyz autopilot, running on an ablenet VPS cron every 10 minutes.
 
 Key reminders:
