@@ -1,0 +1,46 @@
+name: propr-autopilot
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: propr-autopilot
+  cancel-in-progress: false
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: pip install python-ulid
+
+      - name: Run Claude Code autopilot
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Read `autopilot/prompt.md` from this repo and execute the instructions exactly. This is the propr.xyz Free Trial autopilot running on its 30-min GitHub Actions schedule.
+
+            Key reminders:
+            - You run on a GitHub Actions runner (Ubuntu) with full network access — `api.propr.xyz` and `api.hyperliquid.xyz` are both reachable.
+            - `PROPR_API_KEY` is set as a workflow env var. `free/api.py` reads it via `os.environ`.
+            - Default account: `urn:prp-account:xREXiJC2b4He` (Free Trial paper $5k).
+            - DO NOT git commit/push. The runner is ephemeral; working-tree changes are discarded after the job.
+            - Goal: reach +10% ($5500) — be ACTIVE, target 3 concurrent positions, follow the prompt's aggressive judgment axes.
+
+            Follow `autopilot/prompt.md` end-to-end (snapshot → news scan → judge → execute → markdown summary).
+          claude_args: '--allowed-tools Bash Read Write Edit WebSearch WebFetch Glob Grep'
+        env:
+          PROPR_API_KEY: ${{ secrets.PROPR_API_KEY }}
