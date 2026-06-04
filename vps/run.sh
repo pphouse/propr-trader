@@ -31,8 +31,8 @@ echo "============================================================"
 #    at autopilot/prompt.md, which is the actual operator brief.
 claude \
   --print \
-  --allowed-tools "Bash" "Read" "Write" "Edit" "WebSearch" "WebFetch" "Glob" "Grep" \
-  "Read \`autopilot/prompt.md\` from this repo and execute the instructions exactly. This is the propr.xyz Free Trial autopilot, running on a Hetzner VPS cron every 10 minutes.
+  --allowed-tools "Bash Read Write Edit WebSearch WebFetch Glob Grep" \
+  "Read \`autopilot/prompt.md\` from this repo and execute the instructions exactly. This is the propr.xyz autopilot, running on an ablenet VPS cron every 10 minutes.
 
 Key reminders:
 - The VPS has full network access (api.propr.xyz, api.hyperliquid.xyz both reachable).
