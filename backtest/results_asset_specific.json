@@ -1,0 +1,144 @@
+{
+  "BTC": {
+    "strategy": "funding_extreme",
+    "params": {
+      "threshold_pct": 0.002
+    },
+    "sl_pct": 2.0,
+    "tp_pct": 6.0,
+    "IS_n": 83,
+    "IS_ev": 5.21,
+    "IS_winrate": 0.337,
+    "OOS_n": 34,
+    "OOS_ev": 15.75,
+    "OOS_winrate": 0.471,
+    "OOS_pf": 2.36,
+    "OOS_maxDD": 372.3
+  },
+  "ETH": {
+    "strategy": "ema_cross",
+    "params": {
+      "fast": 20,
+      "slow": 50
+    },
+    "sl_pct": 3.0,
+    "tp_pct": 6.0,
+    "IS_n": 58,
+    "IS_ev": 6.47,
+    "IS_winrate": 0.414,
+    "OOS_n": 27,
+    "OOS_ev": 5.25,
+    "OOS_winrate": 0.407,
+    "OOS_pf": 1.28,
+    "OOS_maxDD": 219.8
+  },
+  "SOL": {
+    "strategy": "ema_cross",
+    "params": {
+      "fast": 8,
+      "slow": 21
+    },
+    "sl_pct": 3.0,
+    "tp_pct": 6.0,
+    "IS_n": 153,
+    "IS_ev": 3.31,
+    "IS_winrate": 0.379,
+    "OOS_n": 56,
+    "OOS_ev": 9.29,
+    "OOS_winrate": 0.446,
+    "OOS_pf": 1.56,
+    "OOS_maxDD": 129.13
+  },
+  "HYPE": {
+    "strategy": "funding_momentum",
+    "params": {
+      "lookback": 5,
+      "mom_threshold": 1.0,
+      "fund_threshold": 0.002
+    },
+    "sl_pct": 3.0,
+    "tp_pct": 6.0,
+    "IS_n": 82,
+    "IS_ev": 13.56,
+    "IS_winrate": 0.488,
+    "OOS_n": 21,
+    "OOS_ev": 15.24,
+    "OOS_winrate": 0.524,
+    "OOS_pf": 2.0,
+    "OOS_maxDD": 223.3
+  },
+  "LINK": {
+    "strategy": "rsi",
+    "params": {
+      "period": 7,
+      "ob": 70,
+      "os": 30
+    },
+    "sl_pct": 3.0,
+    "tp_pct": 6.0,
+    "IS_n": 778,
+    "IS_ev": 1.34,
+    "IS_winrate": 0.364,
+    "OOS_n": 349,
+    "OOS_ev": 1.39,
+    "OOS_winrate": 0.381,
+    "OOS_pf": 1.08,
+    "OOS_maxDD": 1570.73
+  },
+  "ZEC": {
+    "strategy": "funding_followthrough",
+    "params": {
+      "lookback": 5,
+      "mom_threshold": 0.5,
+      "fund_threshold": 0.001
+    },
+    "sl_pct": 3.0,
+    "tp_pct": 6.0,
+    "IS_n": 1122,
+    "IS_ev": 2.91,
+    "IS_winrate": 0.381,
+    "OOS_n": 536,
+    "OOS_ev": 10.54,
+    "OOS_winrate": 0.468,
+    "OOS_pf": 1.62,
+    "OOS_maxDD": 2614.87
+  },
+  "WLD": {
+    "strategy": "volume_spike_momentum",
+    "params": {
+      "vol_lookback": 5,
+      "vol_mult": 2.0,
+      "mom_lookback": 5,
+      "mom_threshold": 0.5
+    },
+    "sl_pct": 4.0,
+    "tp_pct": 4.0,
+    "IS_n": 668,
+    "IS_ev": 0.17,
+    "IS_winrate": 0.515,
+    "OOS_n": 230,
+    "OOS_ev": 8.08,
+    "OOS_winrate": 0.617,
+    "OOS_pf": 1.51,
+    "OOS_maxDD": 304.97
+  },
+  "NEAR": {
+    "strategy": "volume_spike_momentum",
+    "params": {
+      "vol_lookback": 10,
+      "vol_mult": 3.0,
+      "mom_lookback": 5,
+      "mom_threshold": 0.5
+    },
+    "sl_pct": 4.0,
+    "tp_pct": 4.0,
+    "IS_n": 326,
+    "IS_ev": 4.1,
+    "IS_winrate": 0.564,
+    "OOS_n": 99,
+    "OOS_ev": 3.88,
+    "OOS_winrate": 0.566,
+    "OOS_pf": 1.22,
+    "OOS_maxDD": 579.63
+  }
+}
