@@ -7,29 +7,50 @@ from pathlib import Path
 from ulid import ULID
 
 
-def _load_api_key():
-    # 1) 環境変数優先 (routine cloud / cron systemd 等)
-    key = os.environ.get("PROPR_API_KEY") or os.environ.get("PERPR_API_KEY")
-    if key:
-        return key.strip()
-    # 2) フォールバック: ローカル .env ファイル (repo root or free/ 配下を探す)
+def _load_env_file():
+    """Parse a KEY=VALUE .env file from common locations. Returns dict."""
     for candidate in [
         Path(__file__).parent / ".env",
         Path(__file__).parent.parent / ".env",
         Path("/Users/naoto/propr/free/.env"),
     ]:
         if candidate.exists():
-            line = candidate.read_text().strip().split("\n")[0]
-            return line.split("=", 1)[1].strip()
+            out = {}
+            for line in candidate.read_text().splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                out[k.strip()] = v.strip().strip('"').strip("'")
+            return out
+    return {}
+
+
+_ENV_FILE = _load_env_file()
+
+
+def _resolve(*keys, default=None):
+    """Look up the first matching key in os.environ, then .env file."""
+    for k in keys:
+        v = os.environ.get(k)
+        if v:
+            return v.strip()
+    for k in keys:
+        v = _ENV_FILE.get(k)
+        if v:
+            return v.strip()
+    return default
+
+
+API_KEY = _resolve("PROPR_API_KEY", "PERPR_API_KEY")
+if not API_KEY:
     raise RuntimeError(
         "PROPR_API_KEY not found. Set env var PROPR_API_KEY=pk_live_..."
         " or place .env file with PROPR_API_KEY=... near api.py"
     )
 
-
-API_KEY = _load_api_key()
 BASE = "https://api.propr.xyz/v1"
-ACCOUNT_ID = os.environ.get("PROPR_ACCOUNT_ID", "urn:prp-account:xREXiJC2b4He")
+ACCOUNT_ID = _resolve("PROPR_ACCOUNT_ID", default="urn:prp-account:xREXiJC2b4He")
 HEADERS = {
     "X-API-Key": API_KEY,
     "Content-Type": "application/json",
