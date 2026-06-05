@@ -19,28 +19,42 @@
 - 既存ポジの SL を**ゆるめる方向に動かさない**
 - レバレッジ上限: **BTC/ETH 5x、 その他 crypto 2x** (server enforced)
 
-## 3軸エントリー判定 (これが全て)
+## 4軸エントリー判定 (これが全て)
 
-新規 entry の必須条件: **以下3軸のうち少なくとも2軸が同方向**
+新規 entry の必須条件: **以下4軸のうち少なくとも3軸が同方向**
 
 | 軸 | データソース | 例 |
 |---|---|---|
 | **A. マクロ方向** | Smart Money 偏り (shorts vs longs) + ニュースバイアス | SM 95shorts/0longs + ETF流出 → BEAR |
-| **B. funding 方向** | 該当銘柄の funding extreme (+/- 0.005%/hr 以上) | BTC funding +0.02% → 買われ過ぎ → short寄り |
+| **B. funding 方向** | funding 絶対値 + **`fund_chg_1h`** (funding変化率) | funding +0.02% + 1h前から +0.01上昇 → ロング急増 = 過熱SHORT寄り |
 | **C. 短期モメンタム** | 直近5本(5m足)平均 vs その前7本平均、 + 2h レンジ位置 | momentum +1.5% + 高値圏 -0.2% → 短期上向きで天井圏 |
+| **D. OI・清算動向** | `oi_chg_1h_pct` + `liquidation_signal` | OI +5% + 価格 +2% = 新規ロング流入 = LONG継続 |
+
+### D軸の読み方 (新規追加、 強力)
+
+`market_changes[asset]` を見て:
+
+- **`oi_chg_1h_pct` > +3% + 価格 +1%以上**: 新規ロング積み増し = LONG継続 (D軸=+1)
+- **`oi_chg_1h_pct` > +3% + 価格 -1%以下**: 新規ショート積み増し = SHORT継続 (D軸=-1)
+- **`oi_chg_1h_pct` < -3% + 価格 +1%以上**: ショート清算で踏み上げ = 一時的、 反落注意 (D軸=逆張りLONG控える)
+- **`oi_chg_1h_pct` < -3% + 価格 -1%以下**: ロング投げ売り = 一時的、 反発注意 (D軸=逆張りSHORT控える)
+- **`liquidation_signal: short_squeeze`**: 直前10分で大規模ショート清算検出 = 短期トップ近い、 LONG控える
+- **`liquidation_signal: long_capitulation`**: 直前10分で大規模ロング清算検出 = 短期ボトム近い、 SHORT控える
 
 ### 信頼度算出と動的サイズ
 
 | 一致軸数 | 信頼度 | 行動 | サイズ倍率 |
 |---|---|---|---|
-| **3軸一致** | 85%+ | 大きく張る | base × **1.5** |
-| **2軸一致** (A+B / A+C / B+C) | 65-75% | 通常エントリー | base × **1.0** |
-| **1軸のみ** | 50%↓ | **エントリー禁止** | — |
-| **逆方向の軸あり** | — | **エントリー禁止** | — |
+| **4軸一致** | 90%+ | 全力 | base × **2.0** |
+| **3軸一致** | 75% | 大きく張る | base × **1.5** |
+| **2軸一致** | 60% | 通常 | base × **1.0** |
+| **1軸のみ** | 50%↓ | **禁止** | — |
+| **C軸 or D軸が逆方向** | — | **禁止** (短期動向・清算が反対なら待つ) | — |
 
-**短期モメンタム軸 (C) が他2軸と矛盾**するときは特に注意:
-- マクロBEAR + funding BEARだが、 momentum +2%/高値圏 → 「**今ショートに乗ると短期反発に轢かれる**」 → **待つ** (この判断ミスで今日 -$82 食らった事例あり)
-- 待つ = 高値到達後に momentum が-転換した瞬間にエントリー、 これが最良
+**C軸/D軸が他軸と矛盾するときは特に注意**:
+- マクロBEAR + funding BEAR だが C軸 momentum +2%/高値圏 → 「**今ショートに乗ると短期反発に轢かれる**」 → **待つ**
+- マクロBEAR + funding BEAR だが D軸 `liquidation_signal: long_capitulation` → 「**直近で投げ売り完了、 これから反発局面**」 → SHORT見送り
+- 待つ = C軸/D軸が反転した瞬間にエントリー、 これが最良
 
 ### ベースサイズ (1ポジ最大損失 \$40 基準)
 
@@ -122,7 +136,7 @@ def hl(payload):
         data=json.dumps(payload).encode(), headers={'Content-Type':'application/json'})
     return json.loads(urllib.request.urlopen(req, timeout=10).read())
 
-# ----- Hyperliquid 24h market + funding -----
+# ----- Hyperliquid 24h market + funding + OI -----
 m = hl({'type':'metaAndAssetCtxs'})
 universe, ctxs = m[0]['universe'], m[1]
 focus = {'BTC','ETH','SOL','HYPE','LINK','SUI','DOGE','AVAX','BCH','LTC'}
@@ -139,6 +153,68 @@ for u, c in zip(universe, ctxs):
         'funding_pct_per_hr': round(float(c.get('funding', 0)) * 100, 4),
         'openInterest': float(c.get('openInterest', 0)),
     }
+
+# ----- 履歴を読み込み (案1: OI変化, 案3: funding変化, 案2: OI急減=清算推定) -----
+import os
+from pathlib import Path
+HIST_PATH = Path(os.path.expanduser('~/.propr-trader-history.json'))
+history = []
+if HIST_PATH.exists():
+    try:
+        history = json.loads(HIST_PATH.read_text())
+    except Exception:
+        history = []
+
+# 現在 snapshot を履歴用に整形
+now_ts = int(time.time())
+current_snap = {
+    'ts': now_ts,
+    'mkt': {a: {'mid': mkt[a]['mid'], 'oi': mkt[a]['openInterest'], 'fund': mkt[a]['funding_pct_per_hr']}
+            for a in mkt}
+}
+
+# 過去の参照ポイント探索 (10min ago, 1h ago, 24h ago)
+def find_past(seconds_ago, tolerance=600):
+    target = now_ts - seconds_ago
+    best = None
+    for h in history:
+        if abs(h['ts'] - target) <= tolerance:
+            if best is None or abs(h['ts'] - target) < abs(best['ts'] - target):
+                best = h
+    return best
+
+past_10m = find_past(600, tolerance=180)       # +/- 3min
+past_1h  = find_past(3600, tolerance=900)       # +/- 15min
+past_24h = find_past(86400, tolerance=3600)     # +/- 1h
+
+# 各 focus asset の OI / funding 変化を計算
+market_changes = {}
+for asset in mkt:
+    cur = current_snap['mkt'][asset]
+    changes = {'oi_now': cur['oi'], 'fund_now': cur['fund'], 'mid_now': cur['mid']}
+    for label, past in [('10m', past_10m), ('1h', past_1h), ('24h', past_24h)]:
+        if past and asset in past.get('mkt', {}):
+            p = past['mkt'][asset]
+            if p['oi'] > 0:
+                changes[f'oi_chg_{label}_pct'] = round((cur['oi'] / p['oi'] - 1) * 100, 2)
+            changes[f'fund_chg_{label}'] = round(cur['fund'] - p['fund'], 4)
+            if p['mid'] > 0:
+                changes[f'price_chg_{label}_pct'] = round((cur['mid'] / p['mid'] - 1) * 100, 2)
+    # 清算推定 (OI急減 -2%以上 + 価格 ±1%以上)
+    oi_drop = changes.get('oi_chg_10m_pct', 0)
+    price_move = abs(changes.get('price_chg_10m_pct', 0))
+    if oi_drop <= -2 and price_move >= 1:
+        if changes.get('price_chg_10m_pct', 0) > 0:
+            changes['liquidation_signal'] = 'short_squeeze'  # 価格上 + OI減 = ショート踏み上げ清算
+        else:
+            changes['liquidation_signal'] = 'long_capitulation'  # 価格下 + OI減 = ロング投げ売り清算
+    market_changes[asset] = changes
+
+# 履歴更新 (古いものは捨てる, 過去48hまで保持)
+history.append(current_snap)
+cutoff = now_ts - 48 * 3600
+history = [h for h in history if h['ts'] >= cutoff]
+HIST_PATH.write_text(json.dumps(history, default=str))
 
 # funding extremes (全銘柄から|funding|>=0.005%/hr 上位)
 funding_extremes = sorted(
@@ -246,9 +322,11 @@ snapshot = {
                          'price':t['price'],'qty':t['quantity'],'pnl':t['realizedPnl'],
                          'at':t['executedAt'][:19]} for t in trades[:5]],
     'market_24h': mkt,
+    'market_changes': market_changes,   # OI/funding/price の 10m/1h/24h 変化 + 清算signal
     'funding_extremes': funding_extremes,
     'short_term_candles': candles,
     'smart_money_bias': sm_bias,
+    'history_data_points': len(history),  # bot稼働長いほど多い、 0なら初回
 }
 with open('/tmp/propr_current.json','w') as f:
     json.dump(snapshot, f, indent=2, default=str)
@@ -287,26 +365,31 @@ snapshot Read 後、 **直近6時間のクリプト関連ニュース**を WebSe
 - `self_brake_daily_loss = True` (当日 realized ≤ -$80)
 - 既存ポジ2つ以上
 
-#### 各銘柄について3軸スコア計算
+#### 各銘柄について4軸スコア計算
 
 候補銘柄 (focus list の中で funding extreme か momentum 大の銘柄を優先):
 
 ```
 For each candidate asset:
-  A軸(マクロ方向): SM全体傾向 + ニュースバイアス → +1 (long寄り) / -1 (short寄り) / 0
-  B軸(funding): funding_pct_per_hr が +0.005%以上→ short寄り(-1) / -0.005%以下→ long寄り(+1) / それ以外0
-  C軸(短期15mモメンタム): momentum_pct > +0.5%→ long(+1) / < -0.5%→ short(-1) / それ以外0
-                       かつ range_position が反対方向なら entry待ち
+  A軸(マクロ): SM全体傾向 + ニュースバイアス → +1 (long) / -1 (short) / 0
+  B軸(funding): funding絶対値 が +0.005%以上→ short(-1) / -0.005%以下→ long(+1) / それ以外0
+                ★さらに fund_chg_1h が +0.01以上 → SHORT寄り強化 / -0.01以下 → LONG寄り強化
+  C軸(短期mom): 15m momentum_pct > +0.5%→ long(+1) / < -0.5%→ short(-1) / それ以外0
+              ★かつ range_position が反対方向なら entry待ち
+  D軸(OI動向): oi_chg_1h_pct と price_chg_1h_pct の組合せ
+              ★ liquidation_signal あれば逆張りには行かない
   
-  方向一致軸数 = abs(A+B+C) (符号同じ軸を数える)
+  方向一致軸数 = 符号一致した軸の数
 ```
 
 #### entry 条件
 
-1. **方向一致軸数 ≥ 2**
-2. **C軸 (短期モメンタム) が逆方向でない** (例: SM=BEAR / funding=BEAR でも momentum +2% / 高値圏 → 「短期高値で押し目待ち」 = 待つ)
-3. **15m momentum と 5m momentum が同方向** (短期足の整合性)
-4. **range_position が極端でない** (entryしようとする方向の真逆: 高値98%でロング、 安値2%でショート、 はリスク大)
+1. **方向一致軸数 ≥ 3** (4軸あるので、 3つ揃えば信頼度75%以上)
+2. **C軸が逆方向でない** (短期モメンタム逆ならどんな大きな macro でも待つ)
+3. **D軸が逆方向でない** (清算signal逆なら短期反転リスクあり、 待つ)
+4. **15m momentum と 5m momentum が同方向** (短期足の整合性)
+5. **range_position が極端でない** (高値98%でロング、 安値2%でショート、 はリスク大)
+6. **history_data_points が 6未満 (=履歴1時間分なし)** の場合は **B/D軸の変化率データは無視**し、 A+C 2軸のみで判定 → この場合 **エントリー見送り** (履歴溜まるまで様子見)
 
 #### サイズ計算
 
