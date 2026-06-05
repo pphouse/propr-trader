@@ -360,8 +360,9 @@ snapshot = {
         'breach_floor': 4700.0,
         'distance_to_breach': round(mb + float(acc['totalUnrealizedPnl']) - 4700, 2),
         'daily_loss_budget_remaining': round(150 + min(0, realized_today), 2),
-        'self_brake_breach_close': mb <= 4730,
-        'self_brake_daily_loss': realized_today <= -100,
+        'self_brake_breach_close': mb <= 4730,  # これは絶対、 override 不可
+        'self_brake_daily_loss': realized_today <= -100 and not os.environ.get('BRAKE_OVERRIDE_DAILY'),
+        'brake_override_daily': bool(os.environ.get('BRAKE_OVERRIDE_DAILY')),
     },
     'directional_notional': {
         'long_total': round(sum(float(p['quantity']) * float(p['markPrice']) for p in pos_open if p['positionSide']=='long'), 2),
@@ -418,10 +419,15 @@ snapshot Read 後、 **直近6時間のクリプト関連ニュース**を WebSe
 
 #### 自主ブレーキ確認 (これに引っかかったら**ノートレード**)
 
-- `self_brake_breach_close = True` (残高 ≤ $4,730)
-- `self_brake_daily_loss = True` (当日 realized ≤ -$100)
+- `self_brake_breach_close = True` (残高 ≤ $4,730、 **絶対、 override不可**)
+- `self_brake_daily_loss = True` (当日 realized ≤ -$100、 **`brake_override_daily=true` で無効化される**)
 - 既存ポジ2つ以上
 - **同方向の合計 notional が $3,000 を超える** (相関制限、 ポジ数関係なし)
+
+⚠️ `brake_override_daily = true` の時の追加注意:
+- 通常より小さなサイズ (信頼度倍率 × 0.7) で慎重に
+- 信頼度 75%以上 (3軸以上一致) のみ entry、 60% は見送り
+- 1ポジ最大損失 $25 (通常 $40) にキャップ
 
 #### 各銘柄について4軸スコア計算
 
