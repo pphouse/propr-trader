@@ -1,6 +1,9 @@
 {
-  "updated_at": "2026-06-03T05:00:29.821468+00:00",
+  "updated_at": "2026-06-05T08:34:50.566049+00:00",
+  "method": "ranked by 2*sharpe + pf - dd/30, filtered AV>$100K + days>60 + directional",
   "wallets": [
-    "0x7c930969fcf3e5a5c78bcf2e1cefda3f53e3c8fd"
+    "0x162cc7c861ebd0c06b3d72319201150482518185",
+    "0x7c930969fcf3e5a5c78bcf2e1cefda3f53e3c8fd",
+    "0x023a3d058020fb76cca98f01b3c48c8938a22355"
   ]
 }

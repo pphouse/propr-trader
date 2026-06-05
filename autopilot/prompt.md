@@ -12,12 +12,23 @@
 - **Daily Loss 上限**: **-$150** (3% fixed、 server enforced、 触ったら永久breach)
 - **Max Drawdown floor**: **\$4,700** (static、 残高がここに触ったら永久breach、 リセット不可)
 - 必ず **bracket order** (entry + SL + TP) で発注、 裸ポジ禁止
-- **当日累積 realized が -$80 を超えたら新規エントリー禁止** (server breach -$150 の手前で自主停止)
-- **残高 $4,750 以下に来たら新規エントリー禁止** (floor $4,700 の手前 $50)
-- **同時アクティブポジ最大 2つ** (3つは攻めすぎ、 Free Trial成功時のサイズ感は危険)
+- **当日累積 realized が -$100 を超えたら新規エントリー禁止** (枠$150の67%手前で自主停止、 スリッページ余裕)
+- **残高 $4,730 以下に来たら新規エントリー禁止** (floor $4,700 の手前 $30)
+- **同時アクティブポジ最大 2つ** + **方向別 notional 制限** (下記)
 - **1ポジ最大想定損失 $40** (Starter 残$5kスケールでは $50は大きすぎ)
 - 既存ポジの SL を**ゆるめる方向に動かさない**
 - レバレッジ上限: **BTC/ETH 5x、 その他 crypto 2x** (server enforced)
+
+### ★ 相関リスク管理 (重要)
+
+BTC/ETH/SOL は相関 0.85+、 同方向に複数ポジを取ると **「ポジ数」 以上の実質リスク** がある。
+ポジ数だけでなく **方向別の合計 notional** で管理:
+
+- **同方向の合計 notional ≤ $3,000** (= 残高の60%)
+- 例: BTC short notional $1,250 + ETH short $1,150 = $2,400 → OK
+- 例: 上記+ SOL short $1,000 = $3,400 → **3つ目見送り** (例えポジ数2でも)
+- 異方向 (long と short 同時) は相殺するのでこの制限は無視できる
+- ロング側とショート側それぞれの合計を別々にカウント
 
 ## 4軸エントリー判定 (これが全て)
 
@@ -278,24 +289,59 @@ for asset in ['BTC','ETH','SOL','HYPE','LINK','ZEC','WLD','NEAR']:  # candle 取
             asset_candles[interval] = {'error': str(e)[:50]}
     candles[asset] = asset_candles
 
-# ----- Smart Money wallet -----
-SM = '0x7c930969fcf3e5a5c78bcf2e1cefda3f53e3c8fd'
-sm = hl({'type':'clearinghouseState','user':SM})
-sm_positions = []
-for p in sm.get('assetPositions', []):
-    szi = float(p['position']['szi'])
-    if abs(szi) < 1e-6:
-        continue
-    sm_positions.append({
-        'asset': p['position']['coin'],
-        'side': 'short' if szi < 0 else 'long',
-        'uPnL': float(p['position']['unrealizedPnl']),
-    })
+# ----- Smart Money: 複数 wallets のネットバイアス -----
+# 1ウォレット追従の偏り回避 (前回 1個依存で全 short bias 引き継ぎ問題あり)
+SM_WALLETS_FILE = Path(__file__).parent.parent / 'smart_money' / 'wallets_qualified.json'
+sm_wallets = []
+if SM_WALLETS_FILE.exists():
+    sm_wallets = json.loads(SM_WALLETS_FILE.read_text()).get('wallets', [])
+if not sm_wallets:
+    sm_wallets = ['0x7c930969fcf3e5a5c78bcf2e1cefda3f53e3c8fd']  # fallback
+
+# 各ウォレットのポジを取得して合算
+sm_per_wallet = {}
+sm_asset_bias = {}  # asset -> {longs: N, shorts: N, agreement: 'short'/'long'/'mixed'}
+sm_total = {'longs': 0, 'shorts': 0}
+for w in sm_wallets:
+    try:
+        st = hl({'type':'clearinghouseState','user':w})
+        wallet_positions = []
+        for p in st.get('assetPositions', []):
+            szi = float(p['position']['szi'])
+            if abs(szi) < 1e-6: continue
+            side = 'short' if szi < 0 else 'long'
+            asset = p['position']['coin']
+            wallet_positions.append({'asset':asset, 'side':side, 'uPnL':float(p['position']['unrealizedPnl'])})
+            sm_total[side+'s'] += 1
+            if asset not in sm_asset_bias:
+                sm_asset_bias[asset] = {'longs':0, 'shorts':0, 'wallets':[]}
+            sm_asset_bias[asset][side+'s'] += 1
+            sm_asset_bias[asset]['wallets'].append(w[:10])
+        sm_per_wallet[w[:10]] = {
+            'pos_count': len(wallet_positions),
+            'longs': sum(1 for p in wallet_positions if p['side']=='long'),
+            'shorts': sum(1 for p in wallet_positions if p['side']=='short'),
+        }
+    except Exception as e:
+        sm_per_wallet[w[:10]] = {'error': str(e)[:50]}
+
+# 合意判定: 各 asset で 過半数(2/3以上) 同方向なら 'agreement'、 そうでなければ 'mixed'
+n_wallets = len([w for w in sm_per_wallet.values() if 'error' not in w])
+for asset, bias in sm_asset_bias.items():
+    if bias['longs'] >= max(2, n_wallets * 0.6):
+        bias['agreement'] = 'long'
+    elif bias['shorts'] >= max(2, n_wallets * 0.6):
+        bias['agreement'] = 'short'
+    else:
+        bias['agreement'] = 'mixed'  # 意見割れ → A軸スコア0
+
 sm_bias = {
-    'longs': sum(1 for p in sm_positions if p['side']=='long'),
-    'shorts': sum(1 for p in sm_positions if p['side']=='short'),
-    'btc_position': next((p for p in sm_positions if p['asset']=='BTC'), None),
-    'eth_position': next((p for p in sm_positions if p['asset']=='ETH'), None),
+    'n_wallets_active': n_wallets,
+    'per_wallet': sm_per_wallet,
+    'total_positions': sm_total,
+    'overall_direction': 'short' if sm_total['shorts'] > sm_total['longs']*1.5 
+                          else ('long' if sm_total['longs'] > sm_total['shorts']*1.5 else 'mixed'),
+    'per_asset': sm_asset_bias,  # 銘柄ごとの合意状態
 }
 
 # ----- today realized -----
@@ -314,8 +360,13 @@ snapshot = {
         'breach_floor': 4700.0,
         'distance_to_breach': round(mb + float(acc['totalUnrealizedPnl']) - 4700, 2),
         'daily_loss_budget_remaining': round(150 + min(0, realized_today), 2),
-        'self_brake_breach_close': mb <= 4750,
-        'self_brake_daily_loss': realized_today <= -80,
+        'self_brake_breach_close': mb <= 4730,
+        'self_brake_daily_loss': realized_today <= -100,
+    },
+    'directional_notional': {
+        'long_total': round(sum(float(p['quantity']) * float(p['markPrice']) for p in pos_open if p['positionSide']=='long'), 2),
+        'short_total': round(sum(float(p['quantity']) * float(p['markPrice']) for p in pos_open if p['positionSide']=='short'), 2),
+        'limit_per_direction': 3000.0,
     },
     'positions_open': [{'asset':p['asset'],'side':p['positionSide'],'qty':p['quantity'],
                         'entry':p['entryPrice'],'mark':p['markPrice'],'uPnL':p['unrealizedPnl'],
@@ -367,9 +418,10 @@ snapshot Read 後、 **直近6時間のクリプト関連ニュース**を WebSe
 
 #### 自主ブレーキ確認 (これに引っかかったら**ノートレード**)
 
-- `self_brake_breach_close = True` (残高 ≤ $4,750)
-- `self_brake_daily_loss = True` (当日 realized ≤ -$80)
+- `self_brake_breach_close = True` (残高 ≤ $4,730)
+- `self_brake_daily_loss = True` (当日 realized ≤ -$100)
 - 既存ポジ2つ以上
+- **同方向の合計 notional が $3,000 を超える** (相関制限、 ポジ数関係なし)
 
 #### 各銘柄について4軸スコア計算
 
@@ -417,12 +469,15 @@ For each candidate asset:
 ただし 1ポジ最大想定損失 $40 を超えない (SL距離×ノーション ≤ $40)
 ```
 
-#### 既存ポジ調整
+#### 既存ポジ調整 (実効R:R 確保が最優先)
 
-1. 含み益 +$10 以上 → SL を建値+$2 へ
-2. 含み益 +$25 以上 → SL を建値+$10 へ (もっと攻める)
-3. TPの50%以上達成 → TPを引きつけ
-4. SL 近接 (差5%以内) → 放置 (SLに任せる)
+**前回までの「+$10で建値」は早すぎ、 TP到達前にSLヒットして実効R:R 0.54 に。 設計値 2.0 に近づけるため緩める。**
+
+1. **含み益 +$25 以上** → SL を建値+$5 へ (利益ある程度確保、 ただし振れに耐える余裕残す)
+2. **含み益 +$50 以上** → SL を建値+$20 へ (大幅利益を保護しつつ TP まで伸ばす)
+3. **TP引きつけは原則禁止** (TPに届くまで待つ、 R:R 2.0設計を自壊させない)
+4. **SL 近接 (差5%以内)** → 放置 (SLに任せる)
+5. **明らかなトレンド転換 (短期足の momentum 反転 + OI急変)** → 例外的に SL を タイトに (建値+$2など)、 ただし 「漠然とした不安」 では動かさない
 
 ### Step 4: 執行
 
