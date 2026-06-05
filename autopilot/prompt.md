@@ -58,7 +58,7 @@
 
 ### ベースサイズ (1ポジ最大損失 \$40 基準)
 
-SL距離 2.0% を前提に、 ノーション $2,000 程度から:
+SL距離 2.0% を前提に、 ノーション $1,000-1,500 程度から:
 
 | 銘柄 | base qty | base notional (約) |
 |---|---|---|
@@ -67,8 +67,13 @@ SL距離 2.0% を前提に、 ノーション $2,000 程度から:
 | SOL | 15 | $1,000 |
 | HYPE | 13 | $850 |
 | LINK | 100 | $800 |
+| ZEC | 30 | $1,000 |
+| WLD | 800 | $1,000 |
+| NEAR | 500 | $1,000 |
+| XMR | 5 | $800 |
+| その他alt | 適宜 | $800-1,000 で計算 |
 
-実サイズ = base × 信頼度倍率。
+実サイズ = base × 信頼度倍率。 ボラの高いalt (ZEC 24h -40% 級) は SL距離を3%に広げて qty を 2/3 に減らす方が安全。
 
 ### SL / TP
 
@@ -139,7 +144,8 @@ def hl(payload):
 # ----- Hyperliquid 24h market + funding + OI -----
 m = hl({'type':'metaAndAssetCtxs'})
 universe, ctxs = m[0]['universe'], m[1]
-focus = {'BTC','ETH','SOL','HYPE','LINK','SUI','DOGE','AVAX','BCH','LTC'}
+focus = {'BTC','ETH','SOL','HYPE','LINK','SUI','DOGE','AVAX','BCH','LTC',
+         'ZEC','WLD','NEAR','XMR','XRP','ADA','BNB','AAVE'}  # alt 拡張 (流動性 \$7M/24h 以上)
 focus.update(p['asset'] for p in pos_open)
 mkt = {}
 for u, c in zip(universe, ctxs):
@@ -227,7 +233,7 @@ funding_extremes = sorted(
 # ----- 短期ローソク足 (focus assetsのみ) -----
 now_ms = int(time.time() * 1000)
 candles = {}
-for asset in ['BTC','ETH','SOL','HYPE','LINK']:
+for asset in ['BTC','ETH','SOL','HYPE','LINK','ZEC','WLD','NEAR']:  # candle 取得対象 (重い処理なので上位8つ)
     asset_candles = {}
     for interval, hours in [('5m', 2), ('15m', 4), ('1h', 12)]:
         start_ms = now_ms - hours * 3600 * 1000
