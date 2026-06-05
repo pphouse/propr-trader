@@ -190,7 +190,7 @@ current_snap = {
             for a in mkt}
 }
 
-# 過去の参照ポイント探索 (10min ago, 1h ago, 24h ago)
+# 過去の参照ポイント探索 (OIのみ自前履歴、 funding/price はAPIで取れる)
 def find_past(seconds_ago, tolerance=600):
     target = now_ts - seconds_ago
     best = None
@@ -200,31 +200,70 @@ def find_past(seconds_ago, tolerance=600):
                 best = h
     return best
 
-past_10m = find_past(600, tolerance=180)       # +/- 3min
-past_1h  = find_past(3600, tolerance=900)       # +/- 15min
-past_24h = find_past(86400, tolerance=3600)     # +/- 1h
+past_10m = find_past(600, tolerance=180)
+past_1h  = find_past(3600, tolerance=900)
+past_24h = find_past(86400, tolerance=3600)
 
-# 各 focus asset の OI / funding 変化を計算
+# funding 1h/24h 変化を fundingHistory API から即取得 (focus 全銘柄)
+funding_history_data = {}
+for asset in mkt:
+    try:
+        fh = hl({'type':'fundingHistory', 'coin':asset,
+                  'startTime': int(now_ts*1000) - 25*3600*1000, 'endTime': int(now_ts*1000)})
+        if fh and len(fh) >= 2:
+            sorted_fh = sorted(fh, key=lambda x: x['time'])
+            cur_rate = float(sorted_fh[-1]['fundingRate']) * 100  # %/hr
+            rate_1h_ago = float(sorted_fh[-2]['fundingRate']) * 100 if len(sorted_fh) >= 2 else cur_rate
+            rate_24h_ago = float(sorted_fh[0]['fundingRate']) * 100
+            funding_history_data[asset] = {
+                'rate_now_pct_per_hr': round(cur_rate, 4),
+                'rate_1h_ago_pct': round(rate_1h_ago, 4),
+                'rate_24h_ago_pct': round(rate_24h_ago, 4),
+                'fund_chg_1h': round(cur_rate - rate_1h_ago, 4),
+                'fund_chg_24h': round(cur_rate - rate_24h_ago, 4),
+            }
+    except Exception as e:
+        funding_history_data[asset] = {'error': str(e)[:60]}
+
+# 価格 1h/24h 変化は metaAndAssetCtxs に chg24h_pct あり、 1hは candle 由来
+# 各 focus asset の market change サマリ
 market_changes = {}
 for asset in mkt:
     cur = current_snap['mkt'][asset]
     changes = {'oi_now': cur['oi'], 'fund_now': cur['fund'], 'mid_now': cur['mid']}
+    # B軸データ (funding 変化) - API即値
+    fhd = funding_history_data.get(asset, {})
+    if 'fund_chg_1h' in fhd:
+        changes['fund_chg_1h'] = fhd['fund_chg_1h']
+        changes['fund_chg_24h'] = fhd['fund_chg_24h']
+    # 価格 1h変化 - candle データから (短期候補のみ)
+    if asset in candles and '1h' in candles[asset] and 'last_close' in candles[asset]['1h']:
+        c1h = candles[asset]['1h']
+        if 'range_low' in c1h and c1h.get('range_low', 0) > 0:
+            # candle 1hの最初の price と 現在の比較
+            try:
+                cs_raw = hl({'type':'candleSnapshot','req':{'coin':asset,'interval':'1h',
+                              'startTime': now_ts*1000 - 2*3600*1000, 'endTime': now_ts*1000}})
+                if cs_raw and len(cs_raw) >= 2:
+                    price_1h_ago = float(cs_raw[0]['o'])
+                    changes['price_chg_1h_pct'] = round((cur['mid']/price_1h_ago - 1)*100, 2)
+            except: pass
+    # 24h 価格変化は mkt から
+    changes['price_chg_24h_pct'] = mkt[asset]['chg24h_pct']
+    
+    # OI変化は自前履歴依存 (Hyperliquid public APIでは過去OI取れない)
     for label, past in [('10m', past_10m), ('1h', past_1h), ('24h', past_24h)]:
         if past and asset in past.get('mkt', {}):
             p = past['mkt'][asset]
             if p['oi'] > 0:
                 changes[f'oi_chg_{label}_pct'] = round((cur['oi'] / p['oi'] - 1) * 100, 2)
-            changes[f'fund_chg_{label}'] = round(cur['fund'] - p['fund'], 4)
-            if p['mid'] > 0:
-                changes[f'price_chg_{label}_pct'] = round((cur['mid'] / p['mid'] - 1) * 100, 2)
+    
     # 清算推定 (OI急減 -2%以上 + 価格 ±1%以上)
-    oi_drop = changes.get('oi_chg_10m_pct', 0)
-    price_move = abs(changes.get('price_chg_10m_pct', 0))
-    if oi_drop <= -2 and price_move >= 1:
-        if changes.get('price_chg_10m_pct', 0) > 0:
-            changes['liquidation_signal'] = 'short_squeeze'  # 価格上 + OI減 = ショート踏み上げ清算
-        else:
-            changes['liquidation_signal'] = 'long_capitulation'  # 価格下 + OI減 = ロング投げ売り清算
+    oi_drop = changes.get('oi_chg_10m_pct')
+    price_move = abs(changes.get('price_chg_1h_pct', changes.get('price_chg_24h_pct', 0)))
+    if oi_drop is not None and oi_drop <= -2 and price_move >= 1:
+        price_dir = changes.get('price_chg_1h_pct', 0)
+        changes['liquidation_signal'] = 'short_squeeze' if price_dir > 0 else 'long_capitulation'
     market_changes[asset] = changes
 
 # 履歴更新 (古いものは捨てる, 過去48hまで保持)
@@ -453,7 +492,7 @@ For each candidate asset:
 3. **D軸が逆方向でない** (清算signal逆なら短期反転リスクあり、 待つ)
 4. **15m momentum と 5m momentum が同方向** (短期足の整合性)
 5. **range_position が極端でない** (高値98%でロング、 安値2%でショート、 はリスク大)
-6. **history_data_points が 6未満 (=履歴1時間分なし)** の場合は **B/D軸の変化率データは無視**し、 A+C 2軸のみで判定 → この場合 **エントリー見送り** (履歴溜まるまで様子見)
+6. **OI変化データなし (history_data_points < 6)** の場合: **D軸のみ無効** (=0扱い)、 A+B+C 3軸で entry検討OK。 funding/価格はAPIから即取得できるので問題なし
 
 #### サイズ計算
 
