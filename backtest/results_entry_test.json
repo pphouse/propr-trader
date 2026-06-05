@@ -1,0 +1,776 @@
+{
+  "random_1pct": {
+    "n": 432,
+    "n_wins": 139,
+    "n_losses": 293,
+    "win_rate": 0.322,
+    "avg_win": 38.84,
+    "avg_loss": -21.71,
+    "effective_rr": 1.79,
+    "total_pnl": -961.51,
+    "ev_per_trade": -2.23,
+    "profit_factor": 0.85,
+    "max_drawdown_usd": 1172.57,
+    "by_exit_reason": {
+      "SL": 293,
+      "TP": 138,
+      "TIMEOUT": 1
+    },
+    "per_asset": {
+      "BTC": {
+        "n": 54,
+        "n_wins": 16,
+        "n_losses": 38,
+        "win_rate": 0.296,
+        "avg_win": 36.95,
+        "avg_loss": -21.69,
+        "effective_rr": 1.7,
+        "total_pnl": -233.22,
+        "ev_per_trade": -4.32,
+        "profit_factor": 0.72,
+        "max_drawdown_usd": 368.1,
+        "by_exit_reason": {
+          "SL": 38,
+          "TP": 15,
+          "TIMEOUT": 1
+        }
+      },
+      "ETH": {
+        "n": 54,
+        "n_wins": 17,
+        "n_losses": 37,
+        "win_rate": 0.315,
+        "avg_win": 38.88,
+        "avg_loss": -21.69,
+        "effective_rr": 1.79,
+        "total_pnl": -141.42,
+        "ev_per_trade": -2.62,
+        "profit_factor": 0.82,
+        "max_drawdown_usd": 246.83,
+        "by_exit_reason": {
+          "SL": 37,
+          "TP": 17
+        }
+      },
+      "SOL": {
+        "n": 54,
+        "n_wins": 16,
+        "n_losses": 38,
+        "win_rate": 0.296,
+        "avg_win": 39.04,
+        "avg_loss": -21.7,
+        "effective_rr": 1.8,
+        "total_pnl": -200.15,
+        "ev_per_trade": -3.71,
+        "profit_factor": 0.76,
+        "max_drawdown_usd": 256.45,
+        "by_exit_reason": {
+          "SL": 38,
+          "TP": 16
+        }
+      },
+      "HYPE": {
+        "n": 54,
+        "n_wins": 15,
+        "n_losses": 39,
+        "win_rate": 0.278,
+        "avg_win": 39.32,
+        "avg_loss": -21.73,
+        "effective_rr": 1.81,
+        "total_pnl": -257.6,
+        "ev_per_trade": -4.77,
+        "profit_factor": 0.7,
+        "max_drawdown_usd": 470.97,
+        "by_exit_reason": {
+          "TP": 15,
+          "SL": 39
+        }
+      },
+      "LINK": {
+        "n": 54,
+        "n_wins": 18,
+        "n_losses": 36,
+        "win_rate": 0.333,
+        "avg_win": 38.93,
+        "avg_loss": -21.69,
+        "effective_rr": 1.79,
+        "total_pnl": -80.15,
+        "ev_per_trade": -1.48,
+        "profit_factor": 0.9,
+        "max_drawdown_usd": 222.35,
+        "by_exit_reason": {
+          "SL": 36,
+          "TP": 18
+        }
+      },
+      "ZEC": {
+        "n": 54,
+        "n_wins": 22,
+        "n_losses": 32,
+        "win_rate": 0.407,
+        "avg_win": 39.01,
+        "avg_loss": -21.7,
+        "effective_rr": 1.8,
+        "total_pnl": 163.67,
+        "ev_per_trade": 3.03,
+        "profit_factor": 1.24,
+        "max_drawdown_usd": 180.25,
+        "by_exit_reason": {
+          "SL": 32,
+          "TP": 22
+        }
+      },
+      "WLD": {
+        "n": 54,
+        "n_wins": 16,
+        "n_losses": 38,
+        "win_rate": 0.296,
+        "avg_win": 39.35,
+        "avg_loss": -21.73,
+        "effective_rr": 1.81,
+        "total_pnl": -196.33,
+        "ev_per_trade": -3.64,
+        "profit_factor": 0.76,
+        "max_drawdown_usd": 234.39,
+        "by_exit_reason": {
+          "SL": 38,
+          "TP": 16
+        }
+      },
+      "NEAR": {
+        "n": 54,
+        "n_wins": 19,
+        "n_losses": 35,
+        "win_rate": 0.352,
+        "avg_win": 39.15,
+        "avg_loss": -21.72,
+        "effective_rr": 1.8,
+        "total_pnl": -16.33,
+        "ev_per_trade": -0.3,
+        "profit_factor": 0.98,
+        "max_drawdown_usd": 260.45,
+        "by_exit_reason": {
+          "SL": 35,
+          "TP": 19
+        }
+      }
+    }
+  },
+  "momentum (C only)": {
+    "n": 22763,
+    "n_wins": 7694,
+    "n_losses": 15069,
+    "win_rate": 0.338,
+    "avg_win": 38.91,
+    "avg_loss": -21.69,
+    "effective_rr": 1.79,
+    "total_pnl": -27410.17,
+    "ev_per_trade": -1.2,
+    "profit_factor": 0.92,
+    "max_drawdown_usd": 28936.23,
+    "by_exit_reason": {
+      "SL": 15053,
+      "TP": 7671,
+      "TIMEOUT": 39
+    },
+    "per_asset": {
+      "BTC": {
+        "n": 1897,
+        "n_wins": 627,
+        "n_losses": 1270,
+        "win_rate": 0.331,
+        "avg_win": 37.97,
+        "avg_loss": -21.56,
+        "effective_rr": 1.76,
+        "total_pnl": -3579.65,
+        "ev_per_trade": -1.89,
+        "profit_factor": 0.87,
+        "max_drawdown_usd": 4716.69,
+        "by_exit_reason": {
+          "SL": 1259,
+          "TP": 605,
+          "TIMEOUT": 33
+        }
+      },
+      "ETH": {
+        "n": 2302,
+        "n_wins": 730,
+        "n_losses": 1572,
+        "win_rate": 0.317,
+        "avg_win": 39.01,
+        "avg_loss": -21.71,
+        "effective_rr": 1.8,
+        "total_pnl": -5645.42,
+        "ev_per_trade": -2.45,
+        "profit_factor": 0.83,
+        "max_drawdown_usd": 6812.84,
+        "by_exit_reason": {
+          "SL": 1572,
+          "TP": 729,
+          "TIMEOUT": 1
+        }
+      },
+      "SOL": {
+        "n": 2563,
+        "n_wins": 858,
+        "n_losses": 1705,
+        "win_rate": 0.335,
+        "avg_win": 38.99,
+        "avg_loss": -21.7,
+        "effective_rr": 1.8,
+        "total_pnl": -3544.6,
+        "ev_per_trade": -1.38,
+        "profit_factor": 0.9,
+        "max_drawdown_usd": 4048.0,
+        "by_exit_reason": {
+          "SL": 1705,
+          "TP": 858
+        }
+      },
+      "HYPE": {
+        "n": 3347,
+        "n_wins": 1131,
+        "n_losses": 2216,
+        "win_rate": 0.338,
+        "avg_win": 38.91,
+        "avg_loss": -21.7,
+        "effective_rr": 1.79,
+        "total_pnl": -4081.55,
+        "ev_per_trade": -1.22,
+        "profit_factor": 0.92,
+        "max_drawdown_usd": 7022.51,
+        "by_exit_reason": {
+          "SL": 2216,
+          "TP": 1131
+        }
+      },
+      "LINK": {
+        "n": 2619,
+        "n_wins": 871,
+        "n_losses": 1748,
+        "win_rate": 0.333,
+        "avg_win": 38.99,
+        "avg_loss": -21.66,
+        "effective_rr": 1.8,
+        "total_pnl": -3898.71,
+        "ev_per_trade": -1.49,
+        "profit_factor": 0.9,
+        "max_drawdown_usd": 4605.22,
+        "by_exit_reason": {
+          "TP": 871,
+          "SL": 1743,
+          "TIMEOUT": 5
+        }
+      },
+      "ZEC": {
+        "n": 3623,
+        "n_wins": 1344,
+        "n_losses": 2279,
+        "win_rate": 0.371,
+        "avg_win": 38.99,
+        "avg_loss": -21.7,
+        "effective_rr": 1.8,
+        "total_pnl": 2953.26,
+        "ev_per_trade": 0.82,
+        "profit_factor": 1.06,
+        "max_drawdown_usd": 3544.13,
+        "by_exit_reason": {
+          "SL": 2279,
+          "TP": 1344
+        }
+      },
+      "WLD": {
+        "n": 3257,
+        "n_wins": 1114,
+        "n_losses": 2143,
+        "win_rate": 0.342,
+        "avg_win": 39.05,
+        "avg_loss": -21.7,
+        "effective_rr": 1.8,
+        "total_pnl": -3008.69,
+        "ev_per_trade": -0.92,
+        "profit_factor": 0.94,
+        "max_drawdown_usd": 4380.4,
+        "by_exit_reason": {
+          "SL": 2143,
+          "TP": 1114
+        }
+      },
+      "NEAR": {
+        "n": 3155,
+        "n_wins": 1019,
+        "n_losses": 2136,
+        "win_rate": 0.323,
+        "avg_win": 39.01,
+        "avg_loss": -21.7,
+        "effective_rr": 1.8,
+        "total_pnl": -6604.79,
+        "ev_per_trade": -2.09,
+        "profit_factor": 0.86,
+        "max_drawdown_usd": 7485.69,
+        "by_exit_reason": {
+          "SL": 2136,
+          "TP": 1019
+        }
+      }
+    }
+  },
+  "funding (B only)": {
+    "n": 903,
+    "n_wins": 236,
+    "n_losses": 667,
+    "win_rate": 0.261,
+    "avg_win": 38.48,
+    "avg_loss": -21.82,
+    "effective_rr": 1.76,
+    "total_pnl": -5472.37,
+    "ev_per_trade": -6.06,
+    "profit_factor": 0.62,
+    "max_drawdown_usd": 5861.05,
+    "by_exit_reason": {
+      "SL": 667,
+      "TP": 236
+    },
+    "per_asset": {
+      "BTC": {
+        "n": 3,
+        "n_wins": 0,
+        "n_losses": 3,
+        "win_rate": 0.0,
+        "avg_win": 0,
+        "avg_loss": -21.77,
+        "effective_rr": null,
+        "total_pnl": -65.31,
+        "ev_per_trade": -21.77,
+        "profit_factor": null,
+        "max_drawdown_usd": 65.31,
+        "by_exit_reason": {
+          "SL": 3
+        }
+      },
+      "ETH": {
+        "n": 4,
+        "n_wins": 0,
+        "n_losses": 4,
+        "win_rate": 0.0,
+        "avg_win": 0,
+        "avg_loss": -21.9,
+        "effective_rr": null,
+        "total_pnl": -87.6,
+        "ev_per_trade": -21.9,
+        "profit_factor": null,
+        "max_drawdown_usd": 87.6,
+        "by_exit_reason": {
+          "SL": 4
+        }
+      },
+      "SOL": {
+        "n": 71,
+        "n_wins": 19,
+        "n_losses": 52,
+        "win_rate": 0.268,
+        "avg_win": 38.1,
+        "avg_loss": -21.9,
+        "effective_rr": 1.74,
+        "total_pnl": -414.9,
+        "ev_per_trade": -5.84,
+        "profit_factor": 0.64,
+        "max_drawdown_usd": 618.9,
+        "by_exit_reason": {
+          "SL": 52,
+          "TP": 19
+        }
+      },
+      "HYPE": {
+        "n": 58,
+        "n_wins": 20,
+        "n_losses": 38,
+        "win_rate": 0.345,
+        "avg_win": 39.1,
+        "avg_loss": -21.6,
+        "effective_rr": 1.81,
+        "total_pnl": -38.83,
+        "ev_per_trade": -0.67,
+        "profit_factor": 0.95,
+        "max_drawdown_usd": 301.11,
+        "by_exit_reason": {
+          "SL": 38,
+          "TP": 20
+        }
+      },
+      "LINK": {
+        "n": 4,
+        "n_wins": 2,
+        "n_losses": 2,
+        "win_rate": 0.5,
+        "avg_win": 39.77,
+        "avg_loss": -21.51,
+        "effective_rr": 1.85,
+        "total_pnl": 36.52,
+        "ev_per_trade": 9.13,
+        "profit_factor": 1.85,
+        "max_drawdown_usd": 43.02,
+        "by_exit_reason": {
+          "TP": 2,
+          "SL": 2
+        }
+      },
+      "ZEC": {
+        "n": 277,
+        "n_wins": 73,
+        "n_losses": 204,
+        "win_rate": 0.264,
+        "avg_win": 38.51,
+        "avg_loss": -21.83,
+        "effective_rr": 1.76,
+        "total_pnl": -1641.01,
+        "ev_per_trade": -5.92,
+        "profit_factor": 0.63,
+        "max_drawdown_usd": 1885.7,
+        "by_exit_reason": {
+          "TP": 73,
+          "SL": 204
+        }
+      },
+      "WLD": {
+        "n": 386,
+        "n_wins": 97,
+        "n_losses": 289,
+        "win_rate": 0.251,
+        "avg_win": 38.15,
+        "avg_loss": -21.89,
+        "effective_rr": 1.74,
+        "total_pnl": -2626.83,
+        "ev_per_trade": -6.81,
+        "profit_factor": 0.58,
+        "max_drawdown_usd": 3598.83,
+        "by_exit_reason": {
+          "SL": 289,
+          "TP": 97
+        }
+      },
+      "NEAR": {
+        "n": 100,
+        "n_wins": 25,
+        "n_losses": 75,
+        "win_rate": 0.25,
+        "avg_win": 39.37,
+        "avg_loss": -21.58,
+        "effective_rr": 1.82,
+        "total_pnl": -634.41,
+        "ev_per_trade": -6.34,
+        "profit_factor": 0.61,
+        "max_drawdown_usd": 790.23,
+        "by_exit_reason": {
+          "SL": 75,
+          "TP": 25
+        }
+      }
+    }
+  },
+  "C+B (2\u8ef8\u4e00\u81f4)": {
+    "n": 292,
+    "n_wins": 77,
+    "n_losses": 215,
+    "win_rate": 0.264,
+    "avg_win": 38.47,
+    "avg_loss": -21.85,
+    "effective_rr": 1.76,
+    "total_pnl": -1734.7,
+    "ev_per_trade": -5.94,
+    "profit_factor": 0.63,
+    "max_drawdown_usd": 1854.64,
+    "by_exit_reason": {
+      "SL": 215,
+      "TP": 77
+    },
+    "per_asset": {
+      "BTC": {
+        "n": 2,
+        "n_wins": 0,
+        "n_losses": 2,
+        "win_rate": 0.0,
+        "avg_win": 0,
+        "avg_loss": -21.9,
+        "effective_rr": null,
+        "total_pnl": -43.8,
+        "ev_per_trade": -21.9,
+        "profit_factor": null,
+        "max_drawdown_usd": 43.8,
+        "by_exit_reason": {
+          "SL": 2
+        }
+      },
+      "ETH": {
+        "n": 1,
+        "n_wins": 0,
+        "n_losses": 1,
+        "win_rate": 0.0,
+        "avg_win": 0,
+        "avg_loss": -21.9,
+        "effective_rr": null,
+        "total_pnl": -21.9,
+        "ev_per_trade": -21.9,
+        "profit_factor": null,
+        "max_drawdown_usd": 21.9,
+        "by_exit_reason": {
+          "SL": 1
+        }
+      },
+      "SOL": {
+        "n": 32,
+        "n_wins": 11,
+        "n_losses": 21,
+        "win_rate": 0.344,
+        "avg_win": 38.1,
+        "avg_loss": -21.9,
+        "effective_rr": 1.74,
+        "total_pnl": -40.8,
+        "ev_per_trade": -1.27,
+        "profit_factor": 0.91,
+        "max_drawdown_usd": 219.0,
+        "by_exit_reason": {
+          "SL": 21,
+          "TP": 11
+        }
+      },
+      "HYPE": {
+        "n": 24,
+        "n_wins": 11,
+        "n_losses": 13,
+        "win_rate": 0.458,
+        "avg_win": 39.16,
+        "avg_loss": -21.57,
+        "effective_rr": 1.82,
+        "total_pnl": 150.38,
+        "ev_per_trade": 6.27,
+        "profit_factor": 1.54,
+        "max_drawdown_usd": 86.03,
+        "by_exit_reason": {
+          "SL": 13,
+          "TP": 11
+        }
+      },
+      "LINK": {
+        "n": 3,
+        "n_wins": 1,
+        "n_losses": 2,
+        "win_rate": 0.333,
+        "avg_win": 39.77,
+        "avg_loss": -21.51,
+        "effective_rr": 1.85,
+        "total_pnl": -3.25,
+        "ev_per_trade": -1.08,
+        "profit_factor": 0.92,
+        "max_drawdown_usd": 43.02,
+        "by_exit_reason": {
+          "SL": 2,
+          "TP": 1
+        }
+      },
+      "ZEC": {
+        "n": 96,
+        "n_wins": 27,
+        "n_losses": 69,
+        "win_rate": 0.281,
+        "avg_win": 38.41,
+        "avg_loss": -21.86,
+        "effective_rr": 1.76,
+        "total_pnl": -471.32,
+        "ev_per_trade": -4.91,
+        "profit_factor": 0.69,
+        "max_drawdown_usd": 673.33,
+        "by_exit_reason": {
+          "TP": 27,
+          "SL": 69
+        }
+      },
+      "WLD": {
+        "n": 107,
+        "n_wins": 20,
+        "n_losses": 87,
+        "win_rate": 0.187,
+        "avg_win": 38.18,
+        "avg_loss": -21.9,
+        "effective_rr": 1.74,
+        "total_pnl": -1141.63,
+        "ev_per_trade": -10.67,
+        "profit_factor": 0.4,
+        "max_drawdown_usd": 1298.83,
+        "by_exit_reason": {
+          "SL": 87,
+          "TP": 20
+        }
+      },
+      "NEAR": {
+        "n": 27,
+        "n_wins": 7,
+        "n_losses": 20,
+        "win_rate": 0.259,
+        "avg_win": 38.81,
+        "avg_loss": -21.7,
+        "effective_rr": 1.79,
+        "total_pnl": -162.38,
+        "ev_per_trade": -6.01,
+        "profit_factor": 0.63,
+        "max_drawdown_usd": 262.91,
+        "by_exit_reason": {
+          "TP": 7,
+          "SL": 20
+        }
+      }
+    }
+  },
+  "3\u8ef8\u4e00\u81f4 (B+C+D)": {
+    "n": 75,
+    "n_wins": 23,
+    "n_losses": 52,
+    "win_rate": 0.307,
+    "avg_win": 38.53,
+    "avg_loss": -21.82,
+    "effective_rr": 1.77,
+    "total_pnl": -248.58,
+    "ev_per_trade": -3.31,
+    "profit_factor": 0.78,
+    "max_drawdown_usd": 310.75,
+    "by_exit_reason": {
+      "SL": 52,
+      "TP": 23
+    },
+    "per_asset": {
+      "BTC": {
+        "n": 1,
+        "n_wins": 0,
+        "n_losses": 1,
+        "win_rate": 0.0,
+        "avg_win": 0,
+        "avg_loss": -21.9,
+        "effective_rr": null,
+        "total_pnl": -21.9,
+        "ev_per_trade": -21.9,
+        "profit_factor": null,
+        "max_drawdown_usd": 21.9,
+        "by_exit_reason": {
+          "SL": 1
+        }
+      },
+      "ETH": {
+        "n": 1,
+        "n_wins": 0,
+        "n_losses": 1,
+        "win_rate": 0.0,
+        "avg_win": 0,
+        "avg_loss": -21.9,
+        "effective_rr": null,
+        "total_pnl": -21.9,
+        "ev_per_trade": -21.9,
+        "profit_factor": null,
+        "max_drawdown_usd": 21.9,
+        "by_exit_reason": {
+          "SL": 1
+        }
+      },
+      "SOL": {
+        "n": 12,
+        "n_wins": 3,
+        "n_losses": 9,
+        "win_rate": 0.25,
+        "avg_win": 38.1,
+        "avg_loss": -21.9,
+        "effective_rr": 1.74,
+        "total_pnl": -82.8,
+        "ev_per_trade": -6.9,
+        "profit_factor": 0.58,
+        "max_drawdown_usd": 109.5,
+        "by_exit_reason": {
+          "SL": 9,
+          "TP": 3
+        }
+      },
+      "HYPE": {
+        "n": 6,
+        "n_wins": 3,
+        "n_losses": 3,
+        "win_rate": 0.5,
+        "avg_win": 38.66,
+        "avg_loss": -21.64,
+        "effective_rr": 1.79,
+        "total_pnl": 51.05,
+        "ev_per_trade": 8.51,
+        "profit_factor": 1.79,
+        "max_drawdown_usd": 21.9,
+        "by_exit_reason": {
+          "TP": 3,
+          "SL": 3
+        }
+      },
+      "LINK": {
+        "n": 1,
+        "n_wins": 1,
+        "n_losses": 0,
+        "win_rate": 1.0,
+        "avg_win": 39.77,
+        "avg_loss": 0,
+        "effective_rr": null,
+        "total_pnl": 39.77,
+        "ev_per_trade": 39.77,
+        "profit_factor": null,
+        "max_drawdown_usd": 0,
+        "by_exit_reason": {
+          "TP": 1
+        }
+      },
+      "ZEC": {
+        "n": 22,
+        "n_wins": 6,
+        "n_losses": 16,
+        "win_rate": 0.273,
+        "avg_win": 38.38,
+        "avg_loss": -21.8,
+        "effective_rr": 1.76,
+        "total_pnl": -118.56,
+        "ev_per_trade": -5.39,
+        "profit_factor": 0.66,
+        "max_drawdown_usd": 169.62,
+        "by_exit_reason": {
+          "SL": 16,
+          "TP": 6
+        }
+      },
+      "WLD": {
+        "n": 20,
+        "n_wins": 7,
+        "n_losses": 13,
+        "win_rate": 0.35,
+        "avg_win": 38.34,
+        "avg_loss": -21.9,
+        "effective_rr": 1.75,
+        "total_pnl": -16.33,
+        "ev_per_trade": -0.82,
+        "profit_factor": 0.94,
+        "max_drawdown_usd": 157.33,
+        "by_exit_reason": {
+          "SL": 13,
+          "TP": 7
+        }
+      },
+      "NEAR": {
+        "n": 12,
+        "n_wins": 3,
+        "n_losses": 9,
+        "win_rate": 0.25,
+        "avg_win": 39.21,
+        "avg_loss": -21.73,
+        "effective_rr": 1.8,
+        "total_pnl": -77.9,
+        "ev_per_trade": -6.49,
+        "profit_factor": 0.6,
+        "max_drawdown_usd": 157.43,
+        "by_exit_reason": {
+          "TP": 3,
+          "SL": 9
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "random_1pct": {
+    "current": {
+      "n": 432,
+      "n_wins": 296,
+      "n_losses": 136,
+      "win_rate": 0.685,
+      "avg_win": 3.88,
+      "avg_loss": -21.7,
+      "effective_rr": 0.18,
+      "total_pnl": -1802.81,
+      "ev_per_trade": -4.17,
+      "profit_factor": 0.39,
+      "max_drawdown_usd": 1860.19,
+      "by_exit_reason": {
+        "SL": 415,
+        "TP": 17
+      }
+    },
+    "delayed": {
+      "n": 432,
+      "n_wins": 199,
+      "n_losses": 233,
+      "win_rate": 0.461,
+      "avg_win": 16.05,
+      "avg_loss": -21.71,
+      "effective_rr": 0.74,
+      "total_pnl": -1864.16,
+      "ev_per_trade": -4.32,
+      "profit_factor": 0.63,
+      "max_drawdown_usd": 1894.05,
+      "by_exit_reason": {
+        "SL": 365,
+        "TP": 67
+      }
+    },
+    "none": {
+      "n": 432,
+      "n_wins": 139,
+      "n_losses": 293,
+      "win_rate": 0.322,
+      "avg_win": 38.84,
+      "avg_loss": -21.71,
+      "effective_rr": 1.79,
+      "total_pnl": -961.51,
+      "ev_per_trade": -2.23,
+      "profit_factor": 0.85,
+      "max_drawdown_usd": 1172.57,
+      "by_exit_reason": {
+        "SL": 293,
+        "TP": 138,
+        "TIMEOUT": 1
+      }
+    }
+  },
+  "momentum_0.5pct": {
+    "current": {
+      "n": 22763,
+      "n_wins": 15193,
+      "n_losses": 7570,
+      "win_rate": 0.667,
+      "avg_win": 2.65,
+      "avg_loss": -21.71,
+      "effective_rr": 0.12,
+      "total_pnl": -124106.68,
+      "ev_per_trade": -5.45,
+      "profit_factor": 0.24,
+      "max_drawdown_usd": 124123.7,
+      "by_exit_reason": {
+        "SL": 22309,
+        "TP": 454
+      }
+    },
+    "delayed": {
+      "n": 22763,
+      "n_wins": 10207,
+      "n_losses": 12556,
+      "win_rate": 0.448,
+      "avg_win": 17.13,
+      "avg_loss": -21.71,
+      "effective_rr": 0.79,
+      "total_pnl": -97635.87,
+      "ev_per_trade": -4.29,
+      "profit_factor": 0.64,
+      "max_drawdown_usd": 97724.78,
+      "by_exit_reason": {
+        "SL": 19098,
+        "TP": 3664,
+        "TIMEOUT": 1
+      }
+    },
+    "none": {
+      "n": 22763,
+      "n_wins": 7694,
+      "n_losses": 15069,
+      "win_rate": 0.338,
+      "avg_win": 38.91,
+      "avg_loss": -21.69,
+      "effective_rr": 1.79,
+      "total_pnl": -27410.17,
+      "ev_per_trade": -1.2,
+      "profit_factor": 0.92,
+      "max_drawdown_usd": 28936.23,
+      "by_exit_reason": {
+        "SL": 15053,
+        "TP": 7671,
+        "TIMEOUT": 39
+      }
+    }
+  }
+}

@@ -9,3 +9,4 @@ autopilot/logs/*.log
 autopilot/logs/*.err
 autopilot/logs/*.runs.jsonl
 autopilot/logs/state.json
+backtest/cache/
