@@ -1,22 +1,21 @@
-"""propr ポジション ポーリング + diff検知 → Charon voice で通知.
+"""propr 新規trade 検知 + Charon voice 通知.
 
-Mac の cron から 10分毎に呼び出される想定。
-state は ~/.propr-notifier-state.json に保持。
-VPS の autopilot.log を ssh で fetch して 判断 reasoning も加える。
+Mac の cron から **1分毎** に呼ばれる想定。
+- state は ~/.propr-notifier-state.json に last_seen_trade_id を保持
+- 新規 trade が出たら VPS log fetch → 該当 cycle の reasoning を抜く
+- Gemini TTS Charon で 「アクション + 理由」 を読み上げ
 """
 import os
+import re
 import sys
 import json
 import subprocess
-import re
 from pathlib import Path
 from datetime import datetime, timezone
 
-# free/api.py を import するため path追加
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / 'free'))
 import api  # noqa: E402
-
 from play import speak  # noqa: E402
 
 STATE_FILE = Path.home() / '.propr-notifier-state.json'
@@ -29,15 +28,14 @@ def load_state():
             return json.loads(STATE_FILE.read_text())
         except Exception:
             pass
-    return {'last_check': None, 'positions': {}}
+    return {'seen_trade_ids': [], 'last_check': None}
 
 
 def save_state(s):
     STATE_FILE.write_text(json.dumps(s, indent=2, default=str))
 
 
-def fetch_vps_log(lines=200):
-    """ssh 鍵認証で VPS の autopilot.log 末尾を取得。 失敗時 None."""
+def fetch_vps_log(lines=400):
     try:
         r = subprocess.run(
             ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
@@ -51,113 +49,139 @@ def fetch_vps_log(lines=200):
     return None
 
 
-def extract_reason_from_log(log_text):
-    """最新の Claude 判断 reasoning を log から抜く.
+def extract_judgement_section(log_text):
+    """最新の **完成済み** cycle の '### 🎯 判断' section と '### 💼 実行結果' を抜く.
 
-    各 cycle は '[YYYY-MM-DDTHH:MM:SSZ] autopilot run starting' で始まり
-    'autopilot run finished' で終わる。 最後の "judgment" sectionを抜く。
+    各 cycle は 'autopilot run starting' 〜 'autopilot run finished' で囲まれる.
+    fetch時に最新 cycle が in-progress だと判断 section がまだ無いので、
+    finished 済みの最後の cycle を取る.
     """
-    if not log_text:
+    if not log_text or 'autopilot run finished' not in log_text:
         return None
-    # 最後の cycle 末尾100行ぐらいから 「### 🎯 判断」 or '判断' の sectionを探す
-    tail = log_text.split('\n')[-150:]
-    # 「### 🎯」 〜 「###」 もしくは end までを抽出
-    text = '\n'.join(tail)
-    m = re.search(r'(?:### 🎯|### .*判断|🎯)([^\n]*\n[^#]*?)(?=###|\Z)', text)
-    if m:
-        return m.group(1).strip()[:400]
-    # fallback: 末尾80字
-    return text[-400:].strip()
+    # 最後の 'finished' までを切り出し → その中の最後の 'starting' 以降 = 最終完了 cycle
+    up_to_finished = log_text.rsplit('autopilot run finished', 1)[0]
+    parts = up_to_finished.split('autopilot run starting')
+    if len(parts) < 2:
+        return None
+    cycle = parts[-1]
+    # '判断' section
+    m_decide = re.search(r'### (?:🎯\s*)?判断[^\n]*\n(.*?)(?=\n### |\Z)',
+                          cycle, re.DOTALL)
+    decide = m_decide.group(1).strip() if m_decide else None
+    return decide
+
+
+def shorten_reason(reason, max_chars=180):
+    """log の判断 section を 1-2 文に縮める."""
+    if not reason:
+        return None
+    # bullet (- や *) を区切りに、 最初の 2 行を取る
+    lines = [l.strip(' -*•').strip() for l in reason.split('\n') if l.strip()]
+    # markdown記号 (** や `) を除去
+    cleaned = []
+    for l in lines:
+        l = re.sub(r'`[^`]*`', '', l)
+        l = re.sub(r'\*\*', '', l)
+        l = re.sub(r'[#✅✨🔴⚠️🎯💼📊🧠⏭ ]+', ' ', l)
+        l = l.strip()
+        if l:
+            cleaned.append(l)
+    joined = '。 '.join(cleaned[:2])
+    if len(joined) > max_chars:
+        joined = joined[:max_chars] + '...'
+    return joined
+
+
+def trade_to_sentence(t):
+    """1つの trade を日本語の1文にする."""
+    asset = t['asset']
+    side_ja = 'ロング' if t['positionSide'] == 'long' else 'ショート'
+    ttype = t.get('type', '')
+    pnl = float(t.get('realizedPnl', 0))
+    price = t.get('price', '?')
+
+    if ttype == 'open':
+        return f"{asset}を{side_ja}でエントリー、 価格 {price}"
+    if ttype == 'close':
+        if pnl > 0:
+            return f"{asset} {side_ja} クローズ、 利確 {abs(pnl):.0f}ドル"
+        elif pnl < 0:
+            return f"{asset} {side_ja} クローズ、 損切り {abs(pnl):.0f}ドル"
+        return f"{asset} {side_ja} クローズ"
+    if ttype == 'flip':
+        if pnl > 0:
+            return f"{asset} {side_ja}にフリップ、 利確 {abs(pnl):.0f}ドル"
+        return f"{asset} {side_ja}にフリップ、 損失 {abs(pnl):.0f}ドル"
+    return f"{asset} {side_ja} {ttype}"
 
 
 def main():
     state = load_state()
+    seen = set(state.get('seen_trade_ids', []))
 
     try:
+        trades = api.get(f'/accounts/{api.ACCOUNT_ID}/trades', limit=20)['data']
         acc = api.account()
-        pos_open = [p for p in api.positions(status='open')['data']
-                    if float(p['quantity']) != 0]
-        trades = api.get(f'/accounts/{api.ACCOUNT_ID}/trades', limit=15)['data']
     except Exception as e:
         print(f'[ERROR] propr API: {e}', file=sys.stderr)
         return
 
-    # 現ポジ snapshot
-    current = {p['positionId']: {
-        'asset': p['asset'],
-        'side': p['positionSide'],
-        'qty': p['quantity'],
-        'entry': p['entryPrice'],
-        'mark': p['markPrice'],
-        'uPnL': p['unrealizedPnl'],
-    } for p in pos_open}
+    trades = sorted(trades, key=lambda t: t.get('executedAt', ''))
 
-    prev = state.get('positions', {})
-    new_open_ids = set(current) - set(prev)
-    new_close_ids = set(prev) - set(current)
-
-    # 初回: baseline 取って通知なし
+    # 初回: 全 trades を seen 扱いにして 通知なし (履歴 spam 回避)
     if state.get('last_check') is None:
-        print(f'[baseline] {len(current)} positions tracked, no notify')
-        state['positions'] = current
+        seen = {t['tradeId'] for t in trades}
+        state['seen_trade_ids'] = list(seen)
+        state['last_check'] = datetime.now(timezone.utc).isoformat()
+        save_state(state)
+        print(f'[baseline] {len(seen)} historical trades marked seen, no notify')
+        return
+
+    new_trades = [t for t in trades if t['tradeId'] not in seen]
+    if not new_trades:
+        print(f'[no change] no new trades')
         state['last_check'] = datetime.now(timezone.utc).isoformat()
         save_state(state)
         return
 
-    if not new_open_ids and not new_close_ids:
-        print(f'[no change] {len(current)} positions')
-        state['last_check'] = datetime.now(timezone.utc).isoformat()
-        save_state(state)
-        return
+    print(f'[detected] {len(new_trades)} new trades')
 
-    # VPS log fetch (1回だけ、 全 event で共有)
-    log_tail = fetch_vps_log(200)
-    reason = extract_reason_from_log(log_tail) if log_tail else None
+    # 同 positionId / 同 type を 1 sentence にまとめる (大型注文の分割約定対策)
+    bucket = {}
+    for t in new_trades:
+        key = (t.get('positionId'), t.get('type'), t.get('asset'), t.get('positionSide'))
+        if key not in bucket:
+            bucket[key] = {**t, '_pnl_sum': 0, '_count': 0}
+        bucket[key]['_pnl_sum'] += float(t.get('realizedPnl', 0))
+        bucket[key]['_count'] += 1
+    deduped = []
+    for k, v in bucket.items():
+        v['realizedPnl'] = v['_pnl_sum']
+        deduped.append(v)
 
-    # 各 event を文章化
-    sentences = []
-    has_loss = False
-    has_profit = False
-    for pid in new_open_ids:
-        p = current[pid]
-        side_ja = 'ロング' if p['side'] == 'long' else 'ショート'
-        sentences.append(f"{p['asset']}を{side_ja}でエントリー、 価格 {p['entry']}")
+    sentences = [trade_to_sentence(t) for t in deduped]
 
-    for pid in new_close_ids:
-        p = prev[pid]
-        side_ja = 'ロング' if p['side'] == 'long' else 'ショート'
-        close_trade = next(
-            (t for t in trades
-             if t.get('positionId') == pid
-             and t.get('type') == 'close'
-             and float(t.get('realizedPnl', 0)) != 0),
-            None
-        )
-        if close_trade:
-            pnl = float(close_trade['realizedPnl'])
-            if pnl > 0:
-                sentences.append(f"{p['asset']} {side_ja} クローズ、 利確 {abs(pnl):.0f}ドル")
-                has_profit = True
-            else:
-                sentences.append(f"{p['asset']} {side_ja} クローズ、 損切り {abs(pnl):.0f}ドル")
-                has_loss = True
-        else:
-            sentences.append(f"{p['asset']} {side_ja} クローズ")
+    # VPS log fetch 1回 → 判断 reason 抜く
+    log_text = fetch_vps_log(400)
+    judgement = extract_judgement_section(log_text)
+    short_reason = shorten_reason(judgement) if judgement else None
 
-    # 残高情報を末尾に追加
+    # 残高情報
     mb = float(acc['marginBalance'])
     upnl = float(acc['totalUnrealizedPnl'])
-    sentences.append(f"現在残高 {mb:.0f}ドル、 含み {'プラス' if upnl >= 0 else 'マイナス'} {abs(upnl):.0f}ドル")
 
-    msg = '。 '.join(sentences) + '。'
+    body_parts = sentences[:]
+    if short_reason:
+        body_parts.append(f"判断: {short_reason}")
+    body_parts.append(f"残高 {mb:.0f}ドル、 含み {'プラス' if upnl >= 0 else 'マイナス'} {abs(upnl):.0f}ドル")
+    msg = '。 '.join(body_parts) + '。'
 
-    # 緊急度に応じて style 切替
-    if has_loss:
-        style = 'in a serious low tone'
-    elif has_profit:
-        style = 'in a calm satisfied voice'
-    else:
-        style = 'in a calm informative voice'
+    # 緊急度 → トーン
+    has_loss = any(float(t.get('realizedPnl', 0)) < 0 for t in deduped)
+    has_profit = any(float(t.get('realizedPnl', 0)) > 0 for t in deduped)
+    style = ('in a serious low tone' if has_loss
+             else 'in a calm satisfied voice' if has_profit
+             else 'in a calm informative voice')
 
     print(f'[speak] {msg}')
     try:
@@ -165,10 +189,9 @@ def main():
     except Exception as e:
         print(f'[ERROR] TTS: {e}', file=sys.stderr)
 
-    if reason:
-        print(f'[log reason snippet] {reason[:300]}')
-
-    state['positions'] = current
+    # state 更新 (max 200 件まで保持)
+    seen.update(t['tradeId'] for t in new_trades)
+    state['seen_trade_ids'] = list(seen)[-200:]
     state['last_check'] = datetime.now(timezone.utc).isoformat()
     save_state(state)
 
