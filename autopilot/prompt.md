@@ -33,9 +33,9 @@ backtest 統合結果:
 | Profit target | +$500 (残高 $5,500) | propr 1-Step Starter |
 | Server Daily Loss上限 | -$150 | propr 永久breach |
 | Server Max DD floor | $4,700 | propr 永久breach |
-| **ノーション/trade** | **$500** 固定 | SL hit損失 = $10-20、 リスク管理 |
-| **同時アクティブポジ** | **最大3つ** | backtest最適、 3pos でEV最大化 |
-| **方向別 notional 制限** | 同方向 ≤ $1,500 | 相関リスク管理 (3×$500) |
+| **ノーション/trade** | **$300** 固定 | SL hit損失 = $6-12、 -6%累積DD制約 ($300=floor) への保険 |
+| **同時アクティブポジ** | **最大3つ** | backtest最適。 3pos のほうが分散効いて累積DD抑制される (2pos より安全) |
+| **方向別 notional 制限** | 同方向 ≤ $900 | 相関リスク管理 (3×$300) |
 | **自主ブレーキ: 残高** | ≤ $4,800 | breach floor $100 手前 |
 | **自主ブレーキ: 当日累積** | ≤ -$100 | server breach -$150 の 手前 $50 |
 | **自主ブレーキ: 連敗** | 直近 3連敗 → 6h停止 | backtest最大連敗 31 → 6h cooldown |
@@ -278,7 +278,7 @@ PY
 4. `self_brakes.open_position_count < 3`
 5. **その asset の `strategy_signals[asset].signal` が 'long' or 'short'**
 6. **その asset で既にポジ持ってない** (重複entry防止: `self_brakes.open_position_assets` 確認)
-7. **方向別 notional制限**: signal が long なら `long_notional + 500 <= 1500`、 short も同様
+7. **方向別 notional制限**: signal が long なら `long_notional + 300 <= 900`、 short も同様
 
 → 全てクリアした最初の銘柄に entry (複数同時にシグナル出る場合は table上位順: BTC, ETH, SOL, HYPE, LINK, ZEC, WLD, NEAR)
 
@@ -292,7 +292,7 @@ import api
 ASSET, SIDE = 'BTC', 'short'  # snapshot.strategy_signals から
 PRICE = ...  # snapshot.strategy_signals[ASSET].cur_close
 SL_PCT, TP_PCT = ..., ...  # snapshot.strategy_signals[ASSET].sl_pct/tp_pct
-NOTIONAL = 500
+NOTIONAL = 300  # backtest検証: $300×3pos で累積DD $114、 -6% floor まで余裕$186
 
 qty = round(NOTIONAL / PRICE, 4 if ASSET == 'BTC' else (3 if ASSET in {'ETH','SOL','HYPE','BCH','LTC','XMR','AAVE'} else 1))
 if SIDE == 'long':
@@ -347,7 +347,7 @@ api.place([
 - **銘柄テーブル外の entry** (8銘柄以外は backtest未検証で EV不明)
 - **同じ銘柄に同時2ポジ** (1銘柄1ポジ厳守)
 - **3ポジ超え** (最大3、 backtest 最適)
-- **同方向 notional $1,500 超え** (相関リスク)
+- **同方向 notional $900 超え** (相関リスク、 3×$300想定)
 - **戦略パラメータ独自変更** (table値を勝手に変えない)
 - 自主ブレーキ無視
 - git commit/push
