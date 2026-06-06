@@ -10,3 +10,5 @@ autopilot/logs/*.err
 autopilot/logs/*.runs.jsonl
 autopilot/logs/state.json
 backtest/cache/
+notifier/.env
+.propr-notifier-state.json
