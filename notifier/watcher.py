@@ -11,7 +11,12 @@ import sys
 import json
 import subprocess
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+# 古すぎる trade (これより昔) は state に記録するが音声化しない
+RECENT_NOTIFY_MINUTES = 10
+# 1回の run で最大何件まで音声化するか
+MAX_NOTIFY_PER_RUN = 3
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / 'free'))
@@ -49,26 +54,52 @@ def fetch_vps_log(lines=400):
     return None
 
 
-def extract_judgement_section(log_text):
-    """最新の **完成済み** cycle の '### 🎯 判断' section と '### 💼 実行結果' を抜く.
-
-    各 cycle は 'autopilot run starting' 〜 'autopilot run finished' で囲まれる.
-    fetch時に最新 cycle が in-progress だと判断 section がまだ無いので、
-    finished 済みの最後の cycle を取る.
-    """
+def _latest_finished_cycle(log_text):
     if not log_text or 'autopilot run finished' not in log_text:
         return None
-    # 最後の 'finished' までを切り出し → その中の最後の 'starting' 以降 = 最終完了 cycle
-    up_to_finished = log_text.rsplit('autopilot run finished', 1)[0]
-    parts = up_to_finished.split('autopilot run starting')
-    if len(parts) < 2:
+    up_to = log_text.rsplit('autopilot run finished', 1)[0]
+    parts = up_to.split('autopilot run starting')
+    return parts[-1] if len(parts) >= 2 else None
+
+
+def extract_signal_reason(log_text, asset):
+    """シグナル section から該当 asset の signal の根拠を抜いて自然な日本語に."""
+    cycle = _latest_finished_cycle(log_text)
+    if not cycle:
         return None
-    cycle = parts[-1]
-    # '判断' section
-    m_decide = re.search(r'### (?:🎯\s*)?判断[^\n]*\n(.*?)(?=\n### |\Z)',
-                          cycle, re.DOTALL)
-    decide = m_decide.group(1).strip() if m_decide else None
-    return decide
+    # 各 asset 行: '- **ZEC** [strategy]: signal=**short** (funding=-0.0069% ≤ -0.001, mom=-7.648% ≤ -0.5%)'
+    pattern = rf'[-*•]\s*\*?\*?{re.escape(asset)}\*?\*?\s*\[([\w_]+)\][^\n]*?signal=\*?\*?(\w+)\*?\*?\s*\(([^)]+)\)'
+    m = re.search(pattern, cycle)
+    if not m:
+        return None
+    strategy, sig, raw = m.group(1), m.group(2), m.group(3)
+    # signal=None の場合は entry してないので根拠出さない (close 側で誤って取らない保険)
+    if sig.lower() in ('none', ''):
+        return None
+    s = raw
+    # 比較演算子と直後の閾値 (例: ' ≤ -0.001') を削る
+    s = re.sub(r'\s*[≤≥<>]=?\s*-?\d+\.?\d*x?%?', '', s)
+    s = re.sub(r'\s*✓\s*', '', s)
+    # 純粋な 「変数=値」 ペアだけ残す: 自然文 (e.g. 'not extreme or oversold') を除去
+    # → カンマ区切りで chunk化、 'name=value' or 'name value' 形式以外は捨てる
+    chunks = [c.strip() for c in re.split(r',|、', s) if c.strip()]
+    keep = []
+    for c in chunks:
+        # 変数名らしいキーワード (英数+_) が ある or 数値%が ある chunk のみ
+        if re.search(r'\b(fund(?:ing)?|mom|vol_mult|RSI|EMA|cross_diff)\b', c, re.I) and re.search(r'-?\d', c):
+            keep.append(c)
+    if not keep:
+        return None
+    s = '、 '.join(keep)
+    # 変数名を日本語化
+    s = re.sub(r'\bfund(?:ing)?\b', 'ファンディング', s, flags=re.I)
+    s = re.sub(r'\bmom\b', 'モメンタム', s, flags=re.I)
+    s = re.sub(r'\bvol_mult\b', '出来高倍率', s, flags=re.I)
+    s = re.sub(r'\bcross_diff\b', 'クロス差', s, flags=re.I)
+    s = re.sub(r'\bEMA\s*\d*\b', 'EMA', s, flags=re.I)
+    s = re.sub(r'\s*=\s*', ' ', s)
+    s = re.sub(r'\s+', ' ', s).strip(' 、。')
+    return s[:140]
 
 
 def shorten_reason(reason, max_chars=180):
@@ -144,7 +175,37 @@ def main():
         save_state(state)
         return
 
-    print(f'[detected] {len(new_trades)} new trades')
+    # 古い trade は silent seen化 (cron 復帰時の spam 防止)
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=RECENT_NOTIFY_MINUTES)
+    recent = []
+    too_old = []
+    for t in new_trades:
+        try:
+            t_time = datetime.fromisoformat(t['executedAt'].replace('Z', '+00:00'))
+            if t_time >= cutoff:
+                recent.append(t)
+            else:
+                too_old.append(t)
+        except Exception:
+            too_old.append(t)
+
+    if too_old:
+        print(f'[silent] {len(too_old)} old trades silently marked seen')
+        seen.update(t['tradeId'] for t in too_old)
+    if not recent:
+        state['seen_trade_ids'] = list(seen)[-200:]
+        state['last_check'] = datetime.now(timezone.utc).isoformat()
+        save_state(state)
+        return
+
+    # 多すぎる時は最新 N件だけ音声化、 残りは silent seen化
+    if len(recent) > MAX_NOTIFY_PER_RUN:
+        seen.update(t['tradeId'] for t in recent[:-MAX_NOTIFY_PER_RUN])
+        recent = recent[-MAX_NOTIFY_PER_RUN:]
+        print(f'[capped] notifying only latest {MAX_NOTIFY_PER_RUN}')
+
+    new_trades = recent
+    print(f'[detected] {len(new_trades)} recent trades to notify')
 
     # 同 positionId / 同 type を 1 sentence にまとめる (大型注文の分割約定対策)
     bucket = {}
@@ -161,31 +222,38 @@ def main():
 
     sentences = [trade_to_sentence(t) for t in deduped]
 
-    # VPS log fetch 1回 → 判断 reason 抜く
-    log_text = fetch_vps_log(400)
-    judgement = extract_judgement_section(log_text)
-    short_reason = shorten_reason(judgement) if judgement else None
+    # VPS log fetch → entry/flip の根拠のみ抽出 (close は TP/SL hit なので不要)
+    needs_reason_assets = {t['asset'] for t in deduped
+                           if t.get('type') in ('open', 'flip')}
+    reasons_by_asset = {}
+    if needs_reason_assets:
+        log_text = fetch_vps_log(400)
+        if log_text:
+            for a in needs_reason_assets:
+                r = extract_signal_reason(log_text, a)
+                if r:
+                    reasons_by_asset[a] = r
 
     # 残高情報
     mb = float(acc['marginBalance'])
     upnl = float(acc['totalUnrealizedPnl'])
 
     body_parts = sentences[:]
-    if short_reason:
-        body_parts.append(f"判断: {short_reason}")
-    body_parts.append(f"残高 {mb:.0f}ドル、 含み {'プラス' if upnl >= 0 else 'マイナス'} {abs(upnl):.0f}ドル")
+    for asset, reason in reasons_by_asset.items():
+        body_parts.append(f"{asset}の根拠は{reason}")
+    body_parts.append(f"残高{mb:.0f}ドル、 含み{'プラス' if upnl >= 0 else 'マイナス'}{abs(upnl):.0f}ドル")
     msg = '。 '.join(body_parts) + '。'
 
     # 緊急度 → トーン
     has_loss = any(float(t.get('realizedPnl', 0)) < 0 for t in deduped)
     has_profit = any(float(t.get('realizedPnl', 0)) > 0 for t in deduped)
-    style = ('in a serious low tone' if has_loss
-             else 'in a calm satisfied voice' if has_profit
-             else 'in a calm informative voice')
+    style = ('in a serious tone' if has_loss
+             else 'in a calm satisfied tone' if has_profit
+             else 'in a clear informative tone')
 
     print(f'[speak] {msg}')
     try:
-        speak(msg, voice='Charon', style_prefix=style)
+        speak(msg, voice='Kore', style_prefix=style)
     except Exception as e:
         print(f'[ERROR] TTS: {e}', file=sys.stderr)
 
