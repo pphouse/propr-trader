@@ -36,7 +36,6 @@ backtest 統合結果:
 | **ノーション/trade** | **$300** 固定 | SL hit損失 = $6-12、 -6%累積DD制約 ($300=floor) への保険 |
 | **同時アクティブポジ** | **最大3つ** | backtest最適。 3pos のほうが分散効いて累積DD抑制される (2pos より安全) |
 | **方向別 notional 制限** | 同方向 ≤ $900 | 相関リスク管理 (3×$300) |
-| **自主ブレーキ: 残高** | ≤ $4,800 | breach floor $100 手前 |
 | **自主ブレーキ: 当日累積** | ≤ -$100 | server breach -$150 の 手前 $50 |
 | **自主ブレーキ: 連敗** | 直近 3連敗 → 6h停止 | backtest最大連敗 31 → 6h cooldown |
 | **既存ポジ調整** | **完全に何もしない** | TP/SL固定、 建値移動禁止 (実効R:R 1.79→0.18破壊) |
@@ -232,7 +231,6 @@ snapshot = {
         'realized_today': round(realized_today, 4),
     },
     'self_brakes': {
-        'balance_too_low': mb <= 4800,
         'daily_loss_too_close_to_breach': realized_today <= -100,
         'consecutive_losses_recent': recent_consec_losses,
         'loss_streak_stopper_active': recent_consec_losses >= 3 and (hours_since_3rd_loss is None or hours_since_3rd_loss < 6),
@@ -257,7 +255,7 @@ with open('/tmp/propr_current.json','w') as f:
     json.dump(snapshot, f, indent=2, default=str)
 
 print(f'snapshot ok eq=${snapshot["account"]["equity"]:.2f} pos={len(pos_open)}')
-print(f'brakes: balLow={snapshot["self_brakes"]["balance_too_low"]} dailyClose={snapshot["self_brakes"]["daily_loss_too_close_to_breach"]} streakStop={snapshot["self_brakes"]["loss_streak_stopper_active"]}')
+print(f'brakes: dailyClose={snapshot["self_brakes"]["daily_loss_too_close_to_breach"]} streakStop={snapshot["self_brakes"]["loss_streak_stopper_active"]}')
 print(f'signals:')
 for a, sig in strategy_signals.items():
     if 'error' in sig:
@@ -272,13 +270,12 @@ PY
 `Read /tmp/propr_current.json` で snapshot 確認。
 
 **エントリー条件 (各 asset で評価)**:
-1. `self_brakes.balance_too_low == false`
-2. `self_brakes.daily_loss_too_close_to_breach == false`
-3. `self_brakes.loss_streak_stopper_active == false`
-4. `self_brakes.open_position_count < 3`
-5. **その asset の `strategy_signals[asset].signal` が 'long' or 'short'**
-6. **その asset で既にポジ持ってない** (重複entry防止: `self_brakes.open_position_assets` 確認)
-7. **方向別 notional制限**: signal が long なら `long_notional + 300 <= 900`、 short も同様
+1. `self_brakes.daily_loss_too_close_to_breach == false`
+2. `self_brakes.loss_streak_stopper_active == false`
+3. `self_brakes.open_position_count < 3`
+4. **その asset の `strategy_signals[asset].signal` が 'long' or 'short'**
+5. **その asset で既にポジ持ってない** (重複entry防止: `self_brakes.open_position_assets` 確認)
+6. **方向別 notional制限**: signal が long なら `long_notional + 300 <= 900`、 short も同様
 
 → 全てクリアした最初の銘柄に entry (複数同時にシグナル出る場合は table上位順: BTC, ETH, SOL, HYPE, LINK, ZEC, WLD, NEAR)
 
@@ -319,7 +316,7 @@ api.place([
 ```markdown
 ### 📊 現状
 - eq $X.XX  realized_today $X.XX  posOpen=X (long $X / short $X)
-- self_brakes: balLow=X dailyClose=X streakStop=X consec=X
+- self_brakes: dailyClose=X streakStop=X consec=X
 
 ### 🧠 シグナル
 - BTC [funding_extreme]: signal=short (funding +0.003%>0.002)
